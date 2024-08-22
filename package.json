@@ -1,0 +1,24 @@
+{
+  "name": "react-native-visual-regression",
+  "version": "1.0.0",
+  "description": "Visual Regression for React Native",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "arg": "^5.0.2",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0"
+  }
+}
