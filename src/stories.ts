@@ -1,6 +1,6 @@
 import { join, extname, resolve } from "path";
 import fs from "fs";
-import { fileFilter, STORIES_DIR_PATH } from ".";
+import { fileFilter, STORIES_DIR_PATH } from "./index";
 
 function getStoryFiles(dirs: string[]): string[] {
     let results: string[] = [];

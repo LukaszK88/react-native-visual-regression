@@ -1,16 +1,18 @@
 import fs from "fs";
 import { getVRStories } from "./stories";
-import { appId, storyFilter } from ".";
+import { appId, device, storyFilter } from "./index";
 import { join } from "path";
 import { exec } from "child_process";
 
 export const generateMaestroFlow = () => {
     const kindWithNames = getVRStories();
     const imageNames: string[] = [];
+
+    console.log({kindWithNames})
   
     let flowContent = `
-  appId: ${appId}
-  ---
+appId: ${appId}
+---
   `;
   
     Object.keys(kindWithNames).forEach((kind) => {
@@ -24,13 +26,13 @@ export const generateMaestroFlow = () => {
         console.log("Running regression on", `${kind}-${name}`);
         imageNames.push(`${kind}-${name}.png`);
         flowContent += `
-  - launchApp:
-      arguments: 
-         kind: ${kind}
-         name: ${name.replace(/([A-Z])/g, " $1").trim()}
-  - assertVisible:
-      id: "addon-backgrounds-container"
-  - takeScreenshot: ${kind}-${name}
+- launchApp:
+    arguments: 
+        kind: ${kind}
+        name: ${name.replace(/([A-Z])/g, " $1").trim()}
+- assertVisible:
+    id: "addon-backgrounds-container"
+- takeScreenshot: ${kind}-${name}
   `;
       });
     });
@@ -51,7 +53,16 @@ export const generateMaestroFlow = () => {
   // Run Maestro flow and capture screenshot
   export const runMaestroFlow = (flowFilePath: string) => {
     return new Promise((resolve, reject) => {
-      exec(`maestro test ${flowFilePath}`, (error, stdout, stderr) => {
+
+        let maestroCommand = ['maestro'];
+
+        if (device) {
+            maestroCommand = maestroCommand.concat(['--device', device]);
+        }
+
+        console.info(`${maestroCommand.join(' ')} test ${flowFilePath}`)
+
+      exec(`${maestroCommand.join(' ')} test ${flowFilePath}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing Maestro flow: ${error}`);
           return reject(error);

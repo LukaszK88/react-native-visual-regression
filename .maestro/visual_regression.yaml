@@ -1,0 +1,12 @@
+
+appId: com.anonymous.VisualRegression
+---
+  
+- launchApp:
+    arguments: 
+        kind: MyButton
+        name: Another Example
+- assertVisible:
+    id: "addon-backgrounds-container"
+- takeScreenshot: MyButton-AnotherExample
+  

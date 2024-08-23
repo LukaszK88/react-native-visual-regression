@@ -1,5 +1,5 @@
 import fs from "fs";
-import { VISUAL_REGRESSION_BASELINE_DIR, VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_DIFF_DIR, VISUAL_REGRESSION_DIR } from ".";
+import { VISUAL_REGRESSION_BASELINE_DIR, VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_DIFF_DIR, VISUAL_REGRESSION_DIR } from "./index";
 import { addRow, generateMarkdownReport } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
