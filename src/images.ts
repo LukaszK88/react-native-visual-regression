@@ -3,9 +3,8 @@ import { VISUAL_REGRESSION_BASELINE_DIR, VISUAL_REGRESSION_CURRENT_DIR, VISUAL_R
 import { addRow, generateMarkdownReport } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
-import pixelmatch from "pixelmatch";
 
-export const orchestrateImages = (imageNames: string[]) => {
+export const orchestrateImages = async (imageNames: string[]) => {
     if (!fs.existsSync(VISUAL_REGRESSION_DIR)) {
       fs.mkdirSync(VISUAL_REGRESSION_BASELINE_DIR, { recursive: true });
       fs.mkdirSync(VISUAL_REGRESSION_CURRENT_DIR);
@@ -13,8 +12,9 @@ export const orchestrateImages = (imageNames: string[]) => {
     }
   
     generateMarkdownReport();
-  
-    imageNames.forEach((image) => {
+    const pixelmatch = (await import("pixelmatch")).default;
+
+    for (const image of imageNames) {
       const baselineImagePath = join(VISUAL_REGRESSION_BASELINE_DIR, image);
       const hasBaseline = fs.existsSync(baselineImagePath);
   
@@ -67,7 +67,7 @@ export const orchestrateImages = (imageNames: string[]) => {
         current: currentImagePath,
         diff: diffImagePath,
       });
-    });
+    };
 
     deleteObsoleteImages(imageNames);
   };

@@ -37,7 +37,7 @@ const runVisualRegression = async () => {
 
   await runMaestroFlow(flowFilePath);
 
-  orchestrateImages(imageNames);
+  await orchestrateImages(imageNames);
 };
 
 const main = () => {
