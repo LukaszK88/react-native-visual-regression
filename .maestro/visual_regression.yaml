@@ -7,6 +7,6 @@ appId: com.anonymous.VisualRegression
         kind: MyButton
         name: Another Example
 - assertVisible:
-    id: "addon-backgrounds-container"
+    id: mybutton--another-example
 - takeScreenshot: MyButton-AnotherExample
   

@@ -4,6 +4,13 @@ import { appId, device, storyFilter } from "./index";
 import { join } from "path";
 import { exec } from "child_process";
 
+function toKebabCase(str: string) {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2') // Insert hyphen between lowercase and uppercase
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2') // Insert hyphen between uppercase letters
+    .toLowerCase(); // Convert to lowercase
+}
+
 export const generateMaestroFlow = () => {
     const kindWithNames = getVRStories();
     const imageNames: string[] = [];
@@ -14,7 +21,7 @@ export const generateMaestroFlow = () => {
 appId: ${appId}
 ---
   `;
-  
+
     Object.keys(kindWithNames).forEach((kind) => {
       if (storyFilter && !storyFilter.startsWith(kind)) {
         return;
@@ -31,7 +38,7 @@ appId: ${appId}
         kind: ${kind}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
 - assertVisible:
-    id: "addon-backgrounds-container"
+    id: ${kind.toLowerCase()}--${toKebabCase(name)}
 - takeScreenshot: ${kind}-${name}
   `;
       });
