@@ -4,6 +4,7 @@ import path, { join } from "path";
 import arg from "arg";
 import { generateMaestroFlow, runMaestroFlow } from "./maestro";
 import { orchestrateImages } from "./images";
+import { addLine, addRow } from "./report";
 
 const args = arg({
   // Types
@@ -50,7 +51,7 @@ const runVisualRegression = async () => {
   await orchestrateImages(imageNames);
 };
 
-const main = () => {
+const main = async () => {
   if (isApproveChanges) {
     fs.cpSync(VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_BASELINE_DIR, {
       recursive: true,
@@ -58,10 +59,15 @@ const main = () => {
     console.log("Changes approved");
     return;
   }
-  runVisualRegression();
+  const start = performance.now();
+  await runVisualRegression();
+  const end = performance.now();
+
+  const duration = end - start;
+
+  console.info('Run took:', Math.floor(duration / 1000));
+
+  addLine(`#### Run time - ${Math.floor(duration / 1000)}s`)
 };
 
 main();
-
-// TODO: console colours & better output
-// TODO: run time in report
