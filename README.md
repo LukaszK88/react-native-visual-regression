@@ -61,7 +61,7 @@ export const AnotherExample: StoryObj<typeof MyButton> = {
 
 Run Visual Regression
 ```
-npm run vr
+npx rn-vr
 ```
 
 #### Command Arguments
