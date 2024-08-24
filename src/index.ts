@@ -1,5 +1,5 @@
 import fs from "fs";
-import { join } from "path";
+import path, { join } from "path";
 // @ts-ignore
 import arg from "arg";
 import { generateMaestroFlow, runMaestroFlow } from "./maestro";
@@ -10,22 +10,32 @@ const args = arg({
   "--approve": Boolean,
   "--file": String,
   "--story": String, // kind-name
-  "--storiesDirectories": [String],
-  "--appId": String,
-  "--device": String,
   // Aliases
   "-a": "--approve",
   "-f": "--file",
   "-s": "--story",
 });
 
+function getRootConfigPath() {
+  const rootDir = path.resolve(__dirname, '../'); 
+  return path.join(rootDir, 'rn-vr.config.js');
+}
+
+const configPath = getRootConfigPath();
+
+const config = require(configPath) as {
+  device: string;
+  appId: string;
+  storiesDirectories: string[];
+}
+
 const isApproveChanges = args["--approve"];
 export const fileFilter = args["--file"];
 export const storyFilter = args["--story"];
-export const appId = args["--appId"];
-export const device = args["--device"];
+export const appId = config.appId;
+export const device = config.device;
 
-export const STORIES_DIR_PATH = args["--storiesDirectories"] || ["./"];
+export const STORIES_DIR_PATH = config.storiesDirectories;
 
 export const VISUAL_REGRESSION_DIR = "visual-regression";
 export const VISUAL_REGRESSION_DIFF_DIR = join(VISUAL_REGRESSION_DIR, "diff");
