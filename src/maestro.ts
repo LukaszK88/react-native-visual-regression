@@ -61,21 +61,22 @@ appId: ${appId}
   export const runMaestroFlow = (flowFilePath: string) => {
     return new Promise((resolve, reject) => {
 
-        let maestroCommand = ['maestro'];
+      let maestroCommand = ['maestro'];
 
-        if (device) {
-            maestroCommand = maestroCommand.concat(['--device', device]);
-        }
+      if (device) {
+        maestroCommand = maestroCommand.concat(['--device', device]);
+      }
 
-        console.info(`${maestroCommand.join(' ')} test ${flowFilePath}`)
+      const command = `${maestroCommand.join(' ')} test ${flowFilePath}`;
 
-      exec(`${maestroCommand.join(' ')} test ${flowFilePath}`, (error, stdout, stderr) => {
+      console.info(command)
+
+      exec(command, (error) => {
         if (error) {
           console.error(`Error executing Maestro flow: ${error}`);
           return reject(error);
         }
-        console.log(`Maestro flow output: ${stdout}`);
         resolve(true);
-      });
+      }).stdout?.pipe(process.stdout)
     });
   };
