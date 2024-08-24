@@ -7,7 +7,11 @@ import { PNG } from "pngjs";
 export const orchestrateImages = async (imageNames: string[]) => {
     if (!fs.existsSync(VISUAL_REGRESSION_DIR)) {
       fs.mkdirSync(VISUAL_REGRESSION_BASELINE_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(VISUAL_REGRESSION_CURRENT_DIR)) {
       fs.mkdirSync(VISUAL_REGRESSION_CURRENT_DIR);
+    }
+    if (!fs.existsSync(VISUAL_REGRESSION_DIFF_DIR)) {
       fs.mkdirSync(VISUAL_REGRESSION_DIFF_DIR);
     }
   
@@ -45,28 +49,43 @@ export const orchestrateImages = async (imageNames: string[]) => {
       const { width, height } = baselineImage;
       const diff = new PNG({ width, height });
   
-      const pixelDiff = pixelmatch(
-        baselineImage.data,
-        currentImage.data,
-        diff.data,
-        width,
-        height,
-        { threshold: 0.1 },
-      );
+      try {
+        const pixelDiff = pixelmatch(
+          baselineImage.data,
+          currentImage.data,
+          diff.data,
+          width,
+          height,
+          { threshold: 0.1 },
+        );
+        const diffImagePath = join(VISUAL_REGRESSION_DIFF_DIR, image);
   
-      const diffImagePath = join(VISUAL_REGRESSION_DIFF_DIR, image);
-  
-      fs.writeFileSync(diffImagePath, PNG.sync.write(diff));
-  
-      const statusMd = pixelDiff > 0 ? `❌` : `✅`;
-  
-      addRow({
-        name: image,
-        result: statusMd,
-        baseline: baselineImagePath,
-        current: currentImagePath,
-        diff: diffImagePath,
-      });
+        fs.writeFileSync(diffImagePath, PNG.sync.write(diff));
+    
+        const statusMd = pixelDiff > 0 ? `❌` : `✅`;
+    
+        addRow({
+          name: image,
+          result: statusMd,
+          baseline: baselineImagePath,
+          current: currentImagePath,
+          diff: diffImagePath,
+        });
+      } catch (e) {
+        const error = (e as unknown as Error).message;
+
+        if (error === 'Image sizes do not match.') {
+          const diffImagePath = join(VISUAL_REGRESSION_DIFF_DIR, image);
+          fs.writeFileSync(diffImagePath, PNG.sync.write(diff));
+          addRow({
+            name: image,
+            result: `Image sizes do not match. ❌`,
+            baseline: baselineImagePath,
+            current: currentImagePath,
+            diff: diffImagePath,
+          });
+        }        
+      }
     };
 
     deleteObsoleteImages(imageNames);

@@ -17,7 +17,7 @@ const args = arg({
 });
 
 function getRootConfigPath() {
-  const rootDir = path.resolve(__dirname, '../'); 
+  const rootDir = process.cwd(); 
   return path.join(rootDir, 'rn-vr.config.js');
 }
 
