@@ -3,13 +3,7 @@ import { KindWithNames } from "./stories";
 import { appId, storyFilter } from "./index";
 import { join } from "path";
 import { exec } from "child_process";
-
-function toKebabCase(str: string) {
-  return str
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2') // Insert hyphen between lowercase and uppercase
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2') // Insert hyphen between uppercase letters
-    .toLowerCase(); // Convert to lowercase
-}
+import { toKebabCase } from "./utils";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 

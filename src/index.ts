@@ -7,6 +7,7 @@ import { orchestrateImages } from "./images";
 import { addLine, addRow } from "./report";
 import { getVRStories } from "./stories";
 import { exec, execSync } from "child_process";
+import { findEmulatorByAvdName, getDeviceIdByName } from "./utils";
 
 const args = arg({
   // Types
@@ -26,11 +27,13 @@ function getRootConfigPath() {
 
 const configPath = getRootConfigPath();
 
+export type Device = {
+  platform: 'android' | 'ios';
+  name: string;
+}
+
 const config = require(configPath) as {
-  devices: {
-    platform: 'android' | 'ios';
-    name: string;
-  }[];
+  devices: Device[];
   appId: string;
   storiesDirectories: string[];
 }
@@ -48,32 +51,12 @@ export const VISUAL_REGRESSION_DIFF_DIR = join(VISUAL_REGRESSION_DIR, "diff");
 export const VISUAL_REGRESSION_CURRENT_DIR = join(VISUAL_REGRESSION_DIR, "current");
 export const VISUAL_REGRESSION_BASELINE_DIR = join(VISUAL_REGRESSION_DIR, "baseline");
 
-
-async function findEmulatorByAvdName(targetAvdName: string): Promise<string> {
-  const devicesOutput = execSync('adb devices', { encoding: 'utf-8' });
-  const emulatorIds = devicesOutput
-      .split('\n')
-      .filter(line => line.startsWith('emulator-'))
-      .map(line => line.split('\t')[0]);
-
-  for (const emulatorId of emulatorIds) {
-      const avdName = execSync(`adb -s ${emulatorId} emu avd name`, { encoding: 'utf-8' }).trim();
-
-      if (avdName.startsWith(targetAvdName)) {
-          console.log(`Emulator ID for AVD '${targetAvdName}' is: ${emulatorId}`);
-          return emulatorId;
-      }
-  }
-
-  throw new Error(`No running emulator found with AVD name '${targetAvdName}'`);
-}
-
 const runVisualRegression = async () => {
   const kindWithNames = getVRStories();
 
   for (const device of devices) {
 
-    const deviceId = await findEmulatorByAvdName(device.name)
+    const deviceId = await getDeviceIdByName(device);
 
     const { imageNames } = generateMaestroFlow(kindWithNames, device.name);
 
