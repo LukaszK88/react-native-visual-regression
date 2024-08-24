@@ -2,6 +2,8 @@ import { join, extname, resolve } from "path";
 import fs from "fs";
 import { fileFilter, STORIES_DIR_PATH } from "./index";
 
+export type KindWithNames = Record<string, string[]>;
+
 function getStoryFiles(dirs: string[]): string[] {
     let results: string[] = [];
   
@@ -65,7 +67,7 @@ function getStoryFiles(dirs: string[]): string[] {
       }
     }
   
-    let kindWithNames: Record<string, string[]> = {};
+    let kindWithNames: KindWithNames = {};
   
     storyFiles.forEach((storyFile) => {
       const absolutePath = resolve(storyFile);

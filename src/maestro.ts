@@ -1,6 +1,6 @@
 import fs from "fs";
-import { getVRStories } from "./stories";
-import { appId, device, storyFilter } from "./index";
+import { KindWithNames } from "./stories";
+import { appId, storyFilter } from "./index";
 import { join } from "path";
 import { exec } from "child_process";
 
@@ -11,11 +11,10 @@ function toKebabCase(str: string) {
     .toLowerCase(); // Convert to lowercase
 }
 
-export const generateMaestroFlow = () => {
-    const kindWithNames = getVRStories();
-    const imageNames: string[] = [];
+const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
-    console.log({kindWithNames})
+export const generateMaestroFlow = (kindWithNames: KindWithNames, deviceName: string) => {
+    const imageNames: string[] = [];
   
     let flowContent = `
 appId: ${appId}
@@ -30,8 +29,9 @@ appId: ${appId}
         if (storyFilter && !storyFilter.endsWith(name)) {
           return;
         }
-        console.log("Running regression on", `${kind}-${name}`);
-        imageNames.push(`${kind}-${name}.png`);
+        const fullName = `${deviceName}-${kind}-${name}`
+        console.log("Running regression on", fullName);
+        imageNames.push(`${fullName}.png`);
         flowContent += `
 - launchApp:
     arguments: 
@@ -39,12 +39,11 @@ appId: ${appId}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
 - assertVisible:
     id: ${kind.toLowerCase()}--${toKebabCase(name)}
-- takeScreenshot: ${kind}-${name}
+- takeScreenshot: ${fullName}
   `;
       });
     });
   
-    const flowFilePath = join(".maestro", `visual_regression.yaml`);
   
     if (fs.existsSync(flowFilePath)) {
       fs.rmSync(flowFilePath);
@@ -53,18 +52,17 @@ appId: ${appId}
     fs.writeFileSync(flowFilePath, flowContent);
     return {
       imageNames,
-      flowFilePath,
     };
   };
   
   // Run Maestro flow and capture screenshot
-  export const runMaestroFlow = (flowFilePath: string) => {
+  export const runMaestroFlow = (deviceId: string) => {
     return new Promise((resolve, reject) => {
 
       let maestroCommand = ['maestro'];
 
-      if (device) {
-        maestroCommand = maestroCommand.concat(['--device', device]);
+      if (deviceId) {
+        maestroCommand = maestroCommand.concat(['--device', deviceId]);
       }
 
       const command = `${maestroCommand.join(' ')} test ${flowFilePath}`;
