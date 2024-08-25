@@ -2,12 +2,11 @@ import fs from "fs";
 import path, { join } from "path";
 // @ts-ignore
 import arg from "arg";
-import { generateMaestroFlow, runMaestroFlow } from "./maestro";
+import { generateMaestroFlow, runMaestroFlow, verifyMaestroInstall } from "./maestro";
 import { orchestrateImages } from "./images";
-import { addLine, addRow } from "./report";
+import { addLine } from "./report";
 import { getVRStories } from "./stories";
-import { exec, execSync } from "child_process";
-import { findEmulatorByAvdName, getDeviceIdByName } from "./utils";
+import { getDeviceIdByName } from "./utils";
 
 const args = arg({
   // Types
@@ -53,7 +52,7 @@ export const VISUAL_REGRESSION_BASELINE_DIR = join(VISUAL_REGRESSION_DIR, "basel
 
 const runVisualRegression = async () => {
   const kindWithNames = getVRStories();
-
+  verifyMaestroInstall()
   for (const device of devices) {
 
     const deviceId = await getDeviceIdByName(device);
@@ -81,7 +80,7 @@ const main = async () => {
 
   const duration = end - start;
 
-  console.info('Run took:', Math.floor(duration / 1000));
+  console.info('Run took:', Math.floor(duration / 1000), 's');
 
   addLine(`#### Run time - ${Math.floor(duration / 1000)}s`)
 };

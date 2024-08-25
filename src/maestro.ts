@@ -2,7 +2,7 @@ import fs from "fs";
 import { KindWithNames } from "./stories";
 import { appId, storyFilter } from "./index";
 import { join } from "path";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { toKebabCase } from "./utils";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
@@ -48,6 +48,37 @@ appId: ${appId}
       imageNames,
     };
   };
+
+  function isMaestroInstalledGlobally() {
+    try {
+        // Check if Maestro is available by running 'maestro --version'
+        execSync('maestro --version', { stdio: 'ignore' });
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+function installMaestro() {
+
+  try {
+      console.log('Maestro is not installed globally. Installing now...');
+      execSync('curl -fsSL "https://get.maestro.mobile.dev" | bash', { stdio: 'inherit' });
+      console.log('Maestro has been installed globally.');
+  } catch (error) {
+      console.error('Failed to install Maestro globally:', (error as unknown as Error).message);
+      process.exit(1);
+  }
+}
+
+export const verifyMaestroInstall =() => {
+  if (!isMaestroInstalledGlobally()) {
+    installMaestro();
+} else {
+    console.log('Maestro is already installed globally.');
+}
+}
+
   
   // Run Maestro flow and capture screenshot
   export const runMaestroFlow = (deviceId: string) => {

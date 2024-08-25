@@ -1,54 +1,45 @@
-
 ## Name
 
-This package orchestrates several tools to provide flexible visual regression solution for RN.
+This package orchestrates several tools to provide a flexible visual regression solution for React Native (RN).
 
-* Storybook
-* Maestro
-* pixelmatch
+If you are using Storybook in your project, you can perform visual regression testing against existing stories.
 
-#### Storybook
+### Storybook
 
-You want to have an app build which can spawn in Storybook mode. See example dir.
+You need to have an app build that can launch in Storybook mode. See the `example` directory for reference.
 
-Storybook will enable you to render any screen or component in your application. Having ability to take screenshots of screens or components in controlled enviroment will produce consistent results.
+Storybook allows you to render any screen or component in your application. By capturing screenshots of these screens or components in a controlled environment, you can ensure consistent results.
 
-Rendering only screens / components you are interested in regression testing will also be more efficent given you don't need to navigate through multiple screens to get to test screen desitnation.
-
-#### Maestro
-
-Maestro is lightweight E2E testing framework which acts as test driver.
-
-Maestro will be able to spawn a particular story and capture a screenshot.
+Rendering only the screens or components that you are interested in regression testing will be more efficient, as you won't need to navigate through multiple screens to reach a particular screen.
 
 ### Installation
 
-```
+```bash
 npm install --save-dev xxxx
 ```
 
 ### Usage
 
-Add config file `rn-vr.config.js` to the root of your project,
+Add the configuration file `rn-vr.config.js` to the root of your project:
 
-```
+```javascript
 module.exports = {
-    devices: [ # you can run visual regression for multiple devices
-      {
-        platform: 'android',
-        name: 'Pixel_8_API_34',
-      },
-    ],
-    appId: 'com.anonymous.VisualRegression', # appId of the app
-    storiesDirectories: [ # directories of where the stories are
-        './example/.storybook'
-    ]
-  };
+  devices: [ // You can run visual regression for multiple devices
+    {
+      platform: 'android',
+      name: 'Pixel_8_API_34',
+    },
+  ],
+  appId: 'com.anonymous.VisualRegression', // appId of the app
+  storiesDirectories: [ // Directories where the stories are located
+    './example/.storybook'
+  ]
+};
 ```
 
-Mark which story should have visual regression coverage
+Mark which story should have visual regression coverage:
 
-```
+```javascript
 export const AnotherExample: StoryObj<typeof MyButton> = {
   args: {
     text: 'Another example',
@@ -59,23 +50,22 @@ export const AnotherExample: StoryObj<typeof MyButton> = {
 };
 ```
 
-Run Visual Regression
-```
+Run Visual Regression:
+
+```bash
 npx rn-vr
 ```
 
-#### Command Arguments
+### Command Arguments
 
-| Argument       | Default   | Example                    | Notes
-| -------------- | --------- | -------------------------- | ----|
-| --approve \| -a| undefined | -a                         | Approve base images with current version
-| --file \| -f   | undefined | -f Button.stories.tsx      | Filename to run VR on
-| --story \| -s  | undefined | -s MyButton-AnotherExample | Target particular Story Kind-name
+| Argument       | Default   | Example                    | Notes                                                |
+| -------------- | --------- | -------------------------- | ---------------------------------------------------- |
+| --approve \| -a| undefined | -a                         | Approve base images with the current version         |
+| --file \| -f   | undefined | -f Button.stories.tsx      | Filename to run visual regression on                 |
+| --story \| -s  | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name                  |
 
 ### Prerequisites
 
-Have [Maestro](https://maestro.mobile.dev/) installed
-
-Ensure the app you want to run against is installed on a simulator / emulator you want to run on.
-
-App can spawn in storybook mode, best without UI so you can capture only screen, see example dir.
+- Ensure the app you want to run against is installed on the simulator/emulator you want to use.
+- The app can launch in Storybook mode, preferably without a UI, so you can capture only the screen. See the `example` directory for more details.
+- Story files should end with `*.stories.tsx`.
