@@ -61,7 +61,7 @@ npx rn-vr
 | Argument       | Default   | Example                    | Notes                                                |
 | -------------- | --------- | -------------------------- | ---------------------------------------------------- |
 | --approve \| -a| undefined | -a                         | Approve base images with the current version         |
-| --file \| -f   | undefined | -f Button.stories.tsx      | Filename to run visual regression on                 |
+| --file \| -f   | undefined | -f .storybook/stories/Button/Button.stories.tsx      | Filename to run visual regression on                 |
 | --story \| -s  | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name                  |
 
 ### Prerequisites

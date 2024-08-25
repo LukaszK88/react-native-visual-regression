@@ -59,7 +59,7 @@ function getStoryFiles(dirs: string[]): string[] {
   
     if (fileFilter) {
       storyFiles = storyFiles.filter((storyFile) =>
-        storyFile.endsWith(fileFilter!),
+        storyFile === fileFilter
       );
       if (!storyFiles.length) {
         console.error(fileFilter, "was not found among stories");
@@ -70,11 +70,20 @@ function getStoryFiles(dirs: string[]): string[] {
     let kindWithNames: KindWithNames = {};
   
     storyFiles.forEach((storyFile) => {
-      const absolutePath = resolve(storyFile);
-      const kind = extractDefaultTitle(absolutePath);
-      const names = extractExportNames(absolutePath);
-      kindWithNames[kind] = names;
+      kindWithNames = {
+        ...kindWithNames,
+        ...formatStoryFileToKindWithNames(storyFile),
+      }
     });
   
     return kindWithNames;
   };
+
+
+  export const formatStoryFileToKindWithNames = (storyFile:string):KindWithNames => {
+    const absolutePath = resolve(storyFile);
+    const kind = extractDefaultTitle(absolutePath);
+    const names = extractExportNames(absolutePath);
+
+    return {[kind]: names}
+  }

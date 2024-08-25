@@ -5,8 +5,10 @@ import arg from "arg";
 import { generateMaestroFlow, runMaestroFlow, verifyMaestroInstall } from "./maestro";
 import { orchestrateImages } from "./images";
 import { addLine } from "./report";
-import { getVRStories } from "./stories";
-import { getDeviceIdByName } from "./utils";
+import { formatStoryFileToKindWithNames, getVRStories } from "./stories";
+import { approveChangesForScreenshots, buildScreenshotName, getDeviceIdByName } from "./utils";
+
+// TODO: device filter for approval or run.
 
 const args = arg({
   // Types
@@ -66,8 +68,29 @@ const runVisualRegression = async () => {
 };
 
 const main = async () => {
-  // TODO approve single file or story
   if (isApproveChanges) {
+
+    if (fileFilter) {
+      const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
+
+      const screenshotNames:string[] = [];
+      const kind = Object.keys(kindWithNames)[0];
+      devices.forEach(device => {
+        kindWithNames[kind].forEach(name => {
+          screenshotNames.push(buildScreenshotName(device.name, kind, name))
+        })
+      })
+
+      approveChangesForScreenshots(screenshotNames);
+      return;
+    }
+
+    if (storyFilter) {
+      const screenshotNames = devices.map(d => `${d.name}-${storyFilter}.png`);
+      approveChangesForScreenshots(screenshotNames);
+      return;
+    }
+
     fs.cpSync(VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_BASELINE_DIR, {
       recursive: true,
     });

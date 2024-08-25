@@ -1,5 +1,7 @@
 import { execSync } from "child_process";
-import { Device } from "./index";
+import { Device, VISUAL_REGRESSION_BASELINE_DIR, VISUAL_REGRESSION_CURRENT_DIR } from "./index";
+import { join } from "path";
+import fs from "fs";
 
 export function toKebabCase(str: string) {
     return str
@@ -45,3 +47,21 @@ export function toKebabCase(str: string) {
 }
 
 export const getDeviceIdByName = (device: Device) => device.platform === 'android' ? findEmulatorByAvdName(device.name) : findSimulatorIdBySimulatorName(device.name);
+
+export const approveChangesForScreenshots = (screenshots: string[]) => {
+    screenshots.forEach(screenshot => {
+        const currentScreenshot = join(VISUAL_REGRESSION_CURRENT_DIR, screenshot);
+        if (!fs.existsSync(currentScreenshot)) {
+          console.info('Given', currentScreenshot, 'does not exist');
+          return;
+        }
+
+       fs.copyFileSync(
+        join(VISUAL_REGRESSION_CURRENT_DIR, screenshot),
+        join(VISUAL_REGRESSION_BASELINE_DIR, screenshot),
+        );
+        console.info('Updated as new baseline:', screenshot);
+      })
+}
+
+export const buildScreenshotName = (deviceName:string, kind: string, name:string) => `${deviceName}-${kind}-${name}.png`
