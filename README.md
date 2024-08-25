@@ -1,4 +1,4 @@
-## Name
+## react-native-visual-regression
 
 This package orchestrates several tools to provide a flexible visual regression solution for React Native (RN).
 
@@ -15,7 +15,7 @@ Rendering only the screens or components that you are interested in regression t
 ### Installation
 
 ```bash
-npm install --save-dev xxxx
+npm install --save-dev @powala/react-native-visual-regression
 ```
 
 Add to your `.gitignore`
