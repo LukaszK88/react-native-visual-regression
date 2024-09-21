@@ -4,6 +4,7 @@ import { appId, storyFilter } from "./index";
 import { join } from "path";
 import { exec, execSync } from "child_process";
 import { toKebabCase } from "./utils";
+import { logBlue, logGreen } from "./console";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
@@ -27,15 +28,19 @@ appId: ${appId}
         return;
       }
       const fullName = `${deviceName}-${kind}-${name}`;
-      console.log("Running regression on", fullName);
       imageNames.push(`${fullName}.png`);
       flowContent += `
 - launchApp:
     arguments: 
         kind: ${kind}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
+    label: "Open ${fullName}"
 - assertVisible:
     id: ${kind.toLowerCase()}--${toKebabCase(name)}
+    label: ${fullName}
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
 - takeScreenshot: ${fullName}
   `;
     });
@@ -46,6 +51,13 @@ appId: ${appId}
   }
 
   fs.writeFileSync(flowFilePath, flowContent);
+
+  logBlue(`Running regression on ${deviceName} for the following scenarios:`);
+
+  imageNames.forEach((image) => {
+    logGreen(`- ${image}`);
+  });
+
   return {
     imageNames,
   };

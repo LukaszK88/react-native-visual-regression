@@ -7,6 +7,7 @@ import {
 import { addRow, generateMarkdownReport } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
+import { logBlue, logGreen } from "./console";
 
 export const orchestrateImages = async (imageNames: string[]) => {
   if (imageNames.length === 0) {
@@ -35,7 +36,7 @@ export const orchestrateImages = async (imageNames: string[]) => {
     // If no baseline, set the current image as baseline
     if (!hasBaseline) {
       await fs.rename(image, baselineImagePath);
-      console.log("Set", image, "as baseline");
+      logGreen("Set", image, "as baseline");
 
       addRow({
         name: image,
@@ -55,7 +56,7 @@ export const orchestrateImages = async (imageNames: string[]) => {
 
     if (moveImage) {
       await fs.rename(image, currentImagePath);
-      console.log("Set", image, "as current");
+      logBlue("Set", image, "as current");
     }
 
     // Read baseline and current images
