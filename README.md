@@ -96,5 +96,6 @@ npx rn-vr -a
 ### Prerequisites
 
 - Ensure the app you want to run against is installed on the simulator/emulator you want to use.
+- For best results run the app in Release mode, otherwsie bundler will slow down the run and might produce inconsistencies.
 - The app can launch in Storybook mode, preferably without a UI, so you can capture only the screen. See the `example` directory for more details.
 - Story files should end with `*.stories.tsx`.

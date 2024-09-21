@@ -8,13 +8,14 @@ import {
   verifyMaestroInstall,
 } from "./maestro";
 import { orchestrateImages } from "./images";
-import { addLine } from "./report";
+import { addLine, generateMarkdownReport } from "./report";
 import { formatStoryFileToKindWithNames, getVRStories } from "./stories";
 import {
   approveChangesForScreenshots,
   buildScreenshotName,
   getDeviceIdByName,
 } from "./utils";
+import { logGreen } from "./console";
 
 // TODO: device filter for approval or run.
 
@@ -70,6 +71,7 @@ export const VISUAL_REGRESSION_BASELINE_DIR = join(
 const runVisualRegression = async () => {
   const kindWithNames = getVRStories();
   verifyMaestroInstall();
+  generateMarkdownReport();
   for (const device of devices) {
     const deviceId = await getDeviceIdByName(device);
 
@@ -77,7 +79,7 @@ const runVisualRegression = async () => {
 
     await runMaestroFlow(deviceId);
 
-    await orchestrateImages(imageNames);
+    await orchestrateImages(imageNames, device.name);
   }
 };
 
@@ -109,7 +111,7 @@ const main = async () => {
     fs.cpSync(VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_BASELINE_DIR, {
       recursive: true,
     });
-    console.log("Changes approved");
+    logGreen("Changes approved");
     return;
   }
   const start = performance.now();

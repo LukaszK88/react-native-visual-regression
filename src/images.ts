@@ -1,15 +1,20 @@
 import fs from "fs/promises";
 import {
+  fileFilter,
+  storyFilter,
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
   VISUAL_REGRESSION_DIFF_DIR,
 } from "./index";
-import { addRow, generateMarkdownReport } from "./report";
+import { addRow } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
-import { logBlue, logGreen } from "./console";
+import { logBlue, logGreen, logRed } from "./console";
 
-export const orchestrateImages = async (imageNames: string[]) => {
+export const orchestrateImages = async (
+  imageNames: string[],
+  deviceName: string,
+) => {
   if (imageNames.length === 0) {
     console.log("No images provided to process.");
     return;
@@ -19,7 +24,6 @@ export const orchestrateImages = async (imageNames: string[]) => {
   await fs.mkdir(VISUAL_REGRESSION_CURRENT_DIR, { recursive: true });
   await fs.mkdir(VISUAL_REGRESSION_DIFF_DIR, { recursive: true });
 
-  generateMarkdownReport();
   const pixelmatch = (await import("pixelmatch")).default;
 
   for (const image of imageNames) {
@@ -109,23 +113,31 @@ export const orchestrateImages = async (imageNames: string[]) => {
       }
     }
   }
+
   // Clean up obsolete images
-  await deleteObsoleteImages(imageNames);
+  await deleteObsoleteImages(imageNames, deviceName);
 };
 
-const deleteObsoleteImages = async (imageNames: string[]) => {
+const deleteObsoleteImages = async (
+  imageNames: string[],
+  deviceName: string,
+) => {
+  // do not clean when filter is applied
+  if (fileFilter || storyFilter) return;
+
   const currentBaselineImages = await fs.readdir(
     VISUAL_REGRESSION_BASELINE_DIR,
   );
 
   for (const baselineImage of currentBaselineImages) {
+    if (!baselineImage.startsWith(deviceName)) continue;
     if (!imageNames.includes(baselineImage)) {
       // Remove corresponding files from baseline, current, and diff directories
       await fs.rm(join(VISUAL_REGRESSION_BASELINE_DIR, baselineImage));
       await fs.rm(join(VISUAL_REGRESSION_CURRENT_DIR, baselineImage));
       await fs.rm(join(VISUAL_REGRESSION_DIFF_DIR, baselineImage));
 
-      console.log("Removed", baselineImage);
+      logRed("Removed", baselineImage);
     }
   }
 };

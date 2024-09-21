@@ -6,6 +6,7 @@ import {
 } from "./index";
 import { join } from "path";
 import fs from "fs";
+import { logBlue, logGreen, logRed } from "./console";
 
 export function toKebabCase(str: string) {
   return str
@@ -29,7 +30,7 @@ export async function findEmulatorByAvdName(
     }).trim();
 
     if (avdName.startsWith(targetAvdName)) {
-      console.log(`Emulator ID for AVD '${targetAvdName}' is: ${emulatorId}`);
+      logBlue(`Emulator ID for AVD '${targetAvdName}' is: ${emulatorId}`);
       return emulatorId;
     }
   }
@@ -52,7 +53,7 @@ export function findSimulatorIdBySimulatorName(deviceName: string): string {
 
   if (match && match[2]) {
     const deviceId = match[2];
-    console.log(`Found device ID: ${deviceId} for device name: ${deviceName}`);
+    logBlue(`Found device ID: ${deviceId} for device name: ${deviceName}`);
     return deviceId;
   } else {
     throw new Error(`No booted device found with name '${deviceName}'`);
@@ -68,7 +69,7 @@ export const approveChangesForScreenshots = (screenshots: string[]) => {
   screenshots.forEach((screenshot) => {
     const currentScreenshot = join(VISUAL_REGRESSION_CURRENT_DIR, screenshot);
     if (!fs.existsSync(currentScreenshot)) {
-      console.info("Given", currentScreenshot, "does not exist");
+      logRed("Given", currentScreenshot, "does not exist");
       return;
     }
 
@@ -76,7 +77,7 @@ export const approveChangesForScreenshots = (screenshots: string[]) => {
       join(VISUAL_REGRESSION_CURRENT_DIR, screenshot),
       join(VISUAL_REGRESSION_BASELINE_DIR, screenshot),
     );
-    console.info("Updated as new baseline:", screenshot);
+    logGreen("Updated as new baseline:", screenshot);
   });
 };
 
