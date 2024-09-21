@@ -1,34 +1,40 @@
-import fs from "fs";
+import fs from "fs/promises";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
   VISUAL_REGRESSION_DIFF_DIR,
-  VISUAL_REGRESSION_DIR,
 } from "./index";
 import { addRow, generateMarkdownReport } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
 
 export const orchestrateImages = async (imageNames: string[]) => {
-  if (!fs.existsSync(VISUAL_REGRESSION_DIR)) {
-    fs.mkdirSync(VISUAL_REGRESSION_BASELINE_DIR, { recursive: true });
+  if (imageNames.length === 0) {
+    console.log("No images provided to process.");
+    return;
   }
-  if (!fs.existsSync(VISUAL_REGRESSION_CURRENT_DIR)) {
-    fs.mkdirSync(VISUAL_REGRESSION_CURRENT_DIR);
-  }
-  if (!fs.existsSync(VISUAL_REGRESSION_DIFF_DIR)) {
-    fs.mkdirSync(VISUAL_REGRESSION_DIFF_DIR);
-  }
+
+  await fs.mkdir(VISUAL_REGRESSION_BASELINE_DIR, { recursive: true });
+  await fs.mkdir(VISUAL_REGRESSION_CURRENT_DIR, { recursive: true });
+  await fs.mkdir(VISUAL_REGRESSION_DIFF_DIR, { recursive: true });
 
   generateMarkdownReport();
   const pixelmatch = (await import("pixelmatch")).default;
 
   for (const image of imageNames) {
     const baselineImagePath = join(VISUAL_REGRESSION_BASELINE_DIR, image);
-    const hasBaseline = fs.existsSync(baselineImagePath);
+    let hasBaseline = false;
 
+    try {
+      await fs.access(baselineImagePath);
+      hasBaseline = true;
+    } catch {
+      hasBaseline = false;
+    }
+
+    // If no baseline, set the current image as baseline
     if (!hasBaseline) {
-      fs.renameSync(image, baselineImagePath);
+      await fs.rename(image, baselineImagePath);
       console.log("Set", image, "as baseline");
 
       addRow({
@@ -37,20 +43,26 @@ export const orchestrateImages = async (imageNames: string[]) => {
         baseline: baselineImagePath,
       });
 
-      return;
+      continue; // Go to the next image
     }
 
-    const moveImage = fs.existsSync(image);
+    // If baseline exists, move the current image to the current directory
+    const moveImage = await fs
+      .access(image)
+      .then(() => true)
+      .catch(() => false);
     const currentImagePath = join(VISUAL_REGRESSION_CURRENT_DIR, image);
 
     if (moveImage) {
-      fs.renameSync(image, currentImagePath);
+      await fs.rename(image, currentImagePath);
       console.log("Set", image, "as current");
     }
 
-    const baselineImage = PNG.sync.read(fs.readFileSync(baselineImagePath));
-    const currentImage = PNG.sync.read(fs.readFileSync(currentImagePath));
+    // Read baseline and current images
+    const baselineImage = PNG.sync.read(await fs.readFile(baselineImagePath));
+    const currentImage = PNG.sync.read(await fs.readFile(currentImagePath));
 
+    // Ensure both images have the same dimensions
     const { width, height } = baselineImage;
     const diff = new PNG({ width, height });
 
@@ -65,7 +77,7 @@ export const orchestrateImages = async (imageNames: string[]) => {
       );
       const diffImagePath = join(VISUAL_REGRESSION_DIFF_DIR, image);
 
-      fs.writeFileSync(diffImagePath, PNG.sync.write(diff));
+      await fs.writeFile(diffImagePath, PNG.sync.write(diff));
 
       const statusMd = pixelDiff > 0 ? `❌` : `✅`;
 
@@ -79,32 +91,40 @@ export const orchestrateImages = async (imageNames: string[]) => {
     } catch (e) {
       const error = (e as unknown as Error).message;
 
+      // Handle image dimension mismatch
       if (error === "Image sizes do not match.") {
-        const diffImagePath = join(VISUAL_REGRESSION_DIFF_DIR, image);
-        fs.writeFileSync(diffImagePath, PNG.sync.write(diff));
+        console.log(
+          `Image sizes do not match for ${image}. Baseline: ${baselineImagePath}, Current: ${currentImagePath}`,
+        );
+
         addRow({
           name: image,
           result: `Image sizes do not match. ❌`,
           baseline: baselineImagePath,
           current: currentImagePath,
-          diff: diffImagePath,
         });
+
+        continue; // Skip further processing for this image
       }
     }
   }
-
-  deleteObsoleteImages(imageNames);
+  // Clean up obsolete images
+  await deleteObsoleteImages(imageNames);
 };
 
-const deleteObsoleteImages = (imageNames: string[]) => {
-  const currentBaselineImages = fs.readdirSync(VISUAL_REGRESSION_BASELINE_DIR);
+const deleteObsoleteImages = async (imageNames: string[]) => {
+  const currentBaselineImages = await fs.readdir(
+    VISUAL_REGRESSION_BASELINE_DIR,
+  );
 
-  currentBaselineImages.forEach((baselineImage) => {
+  for (const baselineImage of currentBaselineImages) {
     if (!imageNames.includes(baselineImage)) {
-      fs.rmSync(join(VISUAL_REGRESSION_BASELINE_DIR, baselineImage));
-      fs.rmSync(join(VISUAL_REGRESSION_CURRENT_DIR, baselineImage));
-      fs.rmSync(join(VISUAL_REGRESSION_DIFF_DIR, baselineImage));
+      // Remove corresponding files from baseline, current, and diff directories
+      await fs.rm(join(VISUAL_REGRESSION_BASELINE_DIR, baselineImage));
+      await fs.rm(join(VISUAL_REGRESSION_CURRENT_DIR, baselineImage));
+      await fs.rm(join(VISUAL_REGRESSION_DIFF_DIR, baselineImage));
+
       console.log("Removed", baselineImage);
     }
-  });
+  }
 };

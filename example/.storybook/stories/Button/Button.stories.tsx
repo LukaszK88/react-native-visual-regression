@@ -22,7 +22,11 @@ const MyButtonMeta: Meta<typeof MyButton> = {
 
 export default MyButtonMeta;
 
-export const Basic: StoryObj<typeof MyButton> = {};
+export const Basic: StoryObj<typeof MyButton> = {
+  parameters: {
+    visualRegression: true,
+  }
+};
 
 export const AnotherExample: StoryObj<typeof MyButton> = {
   args: {
