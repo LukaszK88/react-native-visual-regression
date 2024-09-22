@@ -1,12 +1,12 @@
 import { execSync } from "child_process";
 import {
-  Device,
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
 } from "./index";
 import { join } from "path";
 import fs from "fs";
 import { logBlue, logGreen, logRed } from "./console";
+import { Device } from "./types";
 
 export function toKebabCase(str: string) {
   return str
@@ -15,9 +15,7 @@ export function toKebabCase(str: string) {
     .toLowerCase(); // Convert to lowercase
 }
 
-export async function findEmulatorByAvdName(
-  targetAvdName: string,
-): Promise<string> {
+export function findEmulatorByAvdName(targetAvdName: string) {
   const devicesOutput = execSync("adb devices", { encoding: "utf-8" });
   const emulatorIds = devicesOutput
     .split("\n")

@@ -1,10 +1,10 @@
 import fs from "fs";
-import { KindWithNames } from "./stories";
 import { appId, storyFilter } from "./index";
 import { join } from "path";
 import { exec, execSync } from "child_process";
 import { toKebabCase } from "./utils";
 import { logBlue, logGreen } from "./console";
+import { KindWithNames } from "./types";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
@@ -17,7 +17,7 @@ export const generateMaestroFlow = (
   let flowContent = `
 appId: ${appId}
 ---
-  `;
+`;
 
   Object.keys(kindWithNames).forEach((kind) => {
     if (storyFilter && !storyFilter.startsWith(kind)) {
@@ -31,7 +31,7 @@ appId: ${appId}
       imageNames.push(`${fullName}.png`);
       flowContent += `
 - launchApp:
-    arguments: 
+    arguments:
         kind: ${kind}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
     label: "Open ${fullName}"
@@ -42,7 +42,7 @@ appId: ${appId}
     timeout: 500
     label: Wait for anminations to settle
 - takeScreenshot: ${fullName}
-  `;
+`;
     });
   });
 

@@ -16,6 +16,7 @@ import {
   getDeviceIdByName,
 } from "./utils";
 import { logGreen } from "./console";
+import { Device } from "./types";
 
 // TODO: device filter for approval or run.
 
@@ -36,11 +37,6 @@ function getRootConfigPath() {
 }
 
 const configPath = getRootConfigPath();
-
-export type Device = {
-  platform: "android" | "ios";
-  name: string;
-};
 
 // eslint-disable-next-line  @typescript-eslint/no-require-imports
 const config = require(configPath) as {

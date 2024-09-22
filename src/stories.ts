@@ -1,8 +1,7 @@
 import { join, extname, resolve } from "path";
 import fs from "fs";
 import { fileFilter, STORIES_DIR_PATH } from "./index";
-
-export type KindWithNames = Record<string, string[]>;
+import { KindWithNames } from "./types";
 
 function getStoryFiles(dirs: string[]): string[] {
   let results: string[] = [];
