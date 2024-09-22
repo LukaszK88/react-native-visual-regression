@@ -17,7 +17,7 @@ export const generateMaestroFlow = (
   let flowContent = `
 appId: ${appId}
 ---
-`;
+  `;
 
   Object.keys(kindWithNames).forEach((kind) => {
     if (storyFilter && !storyFilter.startsWith(kind)) {
@@ -31,7 +31,7 @@ appId: ${appId}
       imageNames.push(`${fullName}.png`);
       flowContent += `
 - launchApp:
-    arguments:
+    arguments: 
         kind: ${kind}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
     label: "Open ${fullName}"
@@ -42,7 +42,7 @@ appId: ${appId}
     timeout: 500
     label: Wait for anminations to settle
 - takeScreenshot: ${fullName}
-`;
+  `;
     });
   });
 

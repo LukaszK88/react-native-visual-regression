@@ -10,8 +10,26 @@
     "watch": "tsc --watch",
     "build": "tsup",
     "build:watch": "tsup --watch",
-    "lint": "npx eslint src/**/*.ts"
+    "lint": "npx eslint src/**/*.ts",
+    "prepare": "npm run build"
   },
+  "keywords": [
+    "visual regression",
+    "react-native",
+    "storybook",
+    "testing",
+    "ui-testing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LukaszK88/react-native-visual-regression"
+  },
+  "homepage": "https://github.com/LukaszK88/react-native-visual-regression#readme",
+  "files": [
+    "dist",
+    "rn-vr.js",
+    "README.md"
+  ],
   "bin": {
     "rn-vr": "./rn-vr.js"
   },
