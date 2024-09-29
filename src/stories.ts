@@ -27,7 +27,7 @@ function extractExportNames(filePath: string): string[] {
   const content = fs.readFileSync(filePath, "utf8");
   // Regular expression to match any export const with a StoryObj type
   const exportRegex =
-    /export\s+const\s+(\w+)\s*:\s*StoryObj<[^>]+>\s*=\s*({(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*})/gs;
+    /export\s+const\s+(\w+)\s*:\s*StoryObj<[^>]+>\s*=\s*({[\s\S]*?});/g;
 
   const exports: string[] = [];
   let match;
@@ -36,13 +36,15 @@ function extractExportNames(filePath: string): string[] {
     const exportName = match[1];
     const exportContent = match[0];
 
-    // Check if the export content includes parameters.visualRegression: true
-    const parametersRegex =
+    // Updated regex to check for visualRegression: true, handling nested structures
+    const visualRegressionRegex =
       /parameters\s*:\s*{[^}]*visualRegression\s*:\s*true[^}]*}/s;
-    if (parametersRegex.test(exportContent)) {
+
+    if (visualRegressionRegex.test(exportContent)) {
       exports.push(exportName);
     }
   }
+
   return exports;
 }
 
