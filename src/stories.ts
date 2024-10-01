@@ -50,7 +50,7 @@ function extractExportNames(filePath: string): string[] {
 
 function extractDefaultTitle(filePath: string) {
   const content = fs.readFileSync(filePath, "utf8");
-  const titleRegex = /title\s*:\s*["']([^"']*)["']/;
+  const titleRegex = /Meta<\s*typeof[^\n]*\s*=[^}]*?title\s*:\s*["']([^"']*)["']/s;
   const match = content.match(titleRegex) ?? [];
   return match[1] ?? "Unknown";
 }
