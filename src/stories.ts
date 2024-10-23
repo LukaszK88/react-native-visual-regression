@@ -38,7 +38,7 @@ function extractExportNames(filePath: string): string[] {
 
     // Updated regex to check for visualRegression: true, handling nested structures
     const visualRegressionRegex =
-      /parameters\s*:\s*{[^}]*visualRegression\s*:\s*true[^}]*}/s;
+      /parameters\s*:\s*{[\s\S]*?visualRegression\s*:\s*true[\s\S]*?}/s;
 
     if (visualRegressionRegex.test(exportContent)) {
       exports.push(exportName);
@@ -50,7 +50,9 @@ function extractExportNames(filePath: string): string[] {
 
 function extractDefaultTitle(filePath: string) {
   const content = fs.readFileSync(filePath, "utf8");
-  const titleRegex = /Meta<\s*typeof[^\n]*\s*=[^}]*?title\s*:\s*["']([^"']*)["']/s;
+  const titleRegex =
+    /Meta<\s*[^>]*>\s*=\s*{[^}]*?title\s*:\s*["']([^"']+)["']/s;
+
   const match = content.match(titleRegex) ?? [];
   return match[1] ?? "Unknown";
 }
