@@ -5,8 +5,26 @@ appId: com.anonymous.VisualRegression
 - launchApp:
     arguments: 
         kind: MyButton
+        name: Basic
+    label: "Open Pixel_8_API_34-MyButton-Basic"
+- assertVisible:
+    id: mybutton--basic
+    label: Pixel_8_API_34-MyButton-Basic
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: Pixel_8_API_34-MyButton-Basic
+  
+- launchApp:
+    arguments: 
+        kind: MyButton
         name: Another Example
+    label: "Open Pixel_8_API_34-MyButton-AnotherExample"
 - assertVisible:
     id: mybutton--another-example
-- takeScreenshot: MyButton-AnotherExample
+    label: Pixel_8_API_34-MyButton-AnotherExample
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: Pixel_8_API_34-MyButton-AnotherExample
   
