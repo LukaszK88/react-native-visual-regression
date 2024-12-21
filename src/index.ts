@@ -5,7 +5,10 @@ import arg from "arg";
 import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
 import { orchestrateImages } from "./images";
 import { addLine, generateMarkdownReport } from "./report";
-import { formatStoryFileToKindWithNames, getVRStories } from "./stories";
+import {
+  formatStoryFileToKindWithNames,
+  getVRStories,
+} from "@/storybook/stories";
 import { approveChangesForScreenshots, buildScreenshotName } from "@/utils";
 import { logGreen } from "./console";
 import { Device } from "./types";

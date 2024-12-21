@@ -1,15 +1,13 @@
 import {
   toKebabCase,
-  findEmulatorByAvdName,
-  findSimulatorIdBySimulatorName,
-  getDeviceIdByName,
   approveChangesForScreenshots,
   buildScreenshotName,
-} from "../utils";
+} from "@/utils";
 import { execSync } from "child_process";
 import fs from "fs";
-import { logBlue, logGreen, logRed } from "../console";
-import { Device } from "../types";
+import { logBlue, logGreen, logRed } from "@/console";
+import { Device } from "@/types";
+import { findEmulatorByAvdName, findSimulatorIdBySimulatorName, getDeviceIdByName } from "@/utils/device";
 
 jest.mock("child_process", () => ({
   execSync: jest.fn(),
@@ -24,7 +22,7 @@ jest.mock("../console", () => ({
   logRed: jest.fn(),
 }));
 
-jest.mock("../index", () => ({
+jest.mock("@/index", () => ({
   VISUAL_REGRESSION_BASELINE_DIR: "VISUAL_REGRESSION_BASELINE_DIR",
   VISUAL_REGRESSION_CURRENT_DIR: "VISUAL_REGRESSION_CURRENT_DIR",
 }));

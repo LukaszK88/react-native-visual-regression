@@ -1,13 +1,14 @@
 import { join, extname, resolve } from "path";
 import fs from "fs";
-import { fileFilter, STORIES_DIR_PATH } from "./index";
-import { KindWithNames } from "./types";
+import { fileFilter, STORIES_DIR_PATH } from "@/index";
+import { KindWithNames } from "@/types";
 
 function getStoryFiles(dirs: string[]): string[] {
   let results: string[] = [];
 
   for (const dir of dirs) {
     const files = fs.readdirSync(dir);
+
     for (const file of files) {
       const filePath = join(dir, file);
       const stat = fs.statSync(filePath);
@@ -80,6 +81,9 @@ export const getVRStories = () => {
   return kindWithNames;
 };
 
+/**
+ * Formats a single file to KindWithNames
+ */
 export const formatStoryFileToKindWithNames = (
   storyFile: string,
 ): KindWithNames => {
