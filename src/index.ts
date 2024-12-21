@@ -2,21 +2,15 @@ import fs from "fs";
 import path, { join } from "path";
 // @ts-expect-error expected
 import arg from "arg";
-import {
-  generateMaestroFlow,
-  runMaestroFlow,
-  verifyMaestroInstall,
-} from "./maestro";
+import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
 import { orchestrateImages } from "./images";
 import { addLine, generateMarkdownReport } from "./report";
 import { formatStoryFileToKindWithNames, getVRStories } from "./stories";
-import {
-  approveChangesForScreenshots,
-  buildScreenshotName,
-  getDeviceIdByName,
-} from "./utils";
+import { approveChangesForScreenshots, buildScreenshotName } from "@/utils";
 import { logGreen } from "./console";
 import { Device } from "./types";
+import { getDeviceIdByName } from "@/utils/device";
+import { verifyMaestroInstall } from "@/maestro/installation";
 
 // TODO: device filter for approval or run.
 
@@ -79,35 +73,37 @@ const runVisualRegression = async () => {
   }
 };
 
+const handleApproveChanges = () => {
+  if (fileFilter) {
+    const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
+
+    const screenshotNames: string[] = [];
+    const kind = Object.keys(kindWithNames)[0];
+    devices.forEach((device) => {
+      kindWithNames[kind].forEach((name) => {
+        screenshotNames.push(buildScreenshotName(device.name, kind, name));
+      });
+    });
+
+    approveChangesForScreenshots(screenshotNames);
+    return;
+  }
+
+  if (storyFilter) {
+    const screenshotNames = devices.map((d) => `${d.name}-${storyFilter}.png`);
+    approveChangesForScreenshots(screenshotNames);
+    return;
+  }
+
+  fs.cpSync(VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_BASELINE_DIR, {
+    recursive: true,
+  });
+  logGreen("Changes approved");
+};
+
 const main = async () => {
   if (isApproveChanges) {
-    if (fileFilter) {
-      const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
-
-      const screenshotNames: string[] = [];
-      const kind = Object.keys(kindWithNames)[0];
-      devices.forEach((device) => {
-        kindWithNames[kind].forEach((name) => {
-          screenshotNames.push(buildScreenshotName(device.name, kind, name));
-        });
-      });
-
-      approveChangesForScreenshots(screenshotNames);
-      return;
-    }
-
-    if (storyFilter) {
-      const screenshotNames = devices.map(
-        (d) => `${d.name}-${storyFilter}.png`,
-      );
-      approveChangesForScreenshots(screenshotNames);
-      return;
-    }
-
-    fs.cpSync(VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_BASELINE_DIR, {
-      recursive: true,
-    });
-    logGreen("Changes approved");
+    handleApproveChanges();
     return;
   }
   const start = performance.now();

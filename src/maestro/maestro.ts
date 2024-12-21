@@ -1,10 +1,10 @@
 import fs from "fs";
-import { appId, storyFilter } from "./index";
+import { appId, storyFilter } from "@/index";
 import { join } from "path";
-import { exec, execSync } from "child_process";
-import { toKebabCase } from "./utils";
-import { logBlue, logGreen } from "./console";
-import { KindWithNames } from "./types";
+import { exec } from "child_process";
+import { toKebabCase } from "@/utils";
+import { logBlue, logGreen } from "@/console";
+import { KindWithNames } from "@/types";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
@@ -17,9 +17,10 @@ export const generateMaestroFlow = (
   let flowContent = `
 appId: ${appId}
 ---
-  `;
+`;
 
   Object.keys(kindWithNames).forEach((kind) => {
+    // ignore any kind which does not start with storyFilter
     if (storyFilter && !storyFilter.startsWith(kind)) {
       return;
     }
@@ -31,7 +32,7 @@ appId: ${appId}
       imageNames.push(`${fullName}.png`);
       flowContent += `
 - launchApp:
-    arguments: 
+    arguments:
         kind: ${kind}
         name: ${name.replace(/([A-Z])/g, " $1").trim()}
     label: "Open ${fullName}"
@@ -42,7 +43,7 @@ appId: ${appId}
     timeout: 500
     label: Wait for anminations to settle
 - takeScreenshot: ${fullName}
-  `;
+`;
     });
   });
 
@@ -61,41 +62,6 @@ appId: ${appId}
   return {
     imageNames,
   };
-};
-
-function isMaestroInstalledGlobally() {
-  try {
-    // Check if Maestro is available by running 'maestro --version'
-    execSync("maestro --version", { stdio: "ignore" });
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-}
-
-function installMaestro() {
-  try {
-    console.log("Maestro is not installed globally. Installing now...");
-    execSync('curl -fsSL "https://get.maestro.mobile.dev" | bash', {
-      stdio: "inherit",
-    });
-    console.log("Maestro has been installed globally.");
-  } catch (error) {
-    console.error(
-      "Failed to install Maestro globally:",
-      (error as unknown as Error).message,
-    );
-    process.exit(1);
-  }
-}
-
-export const verifyMaestroInstall = () => {
-  if (!isMaestroInstalledGlobally()) {
-    installMaestro();
-  } else {
-    console.log("Maestro is already installed globally.");
-  }
 };
 
 // Run Maestro flow and capture screenshot

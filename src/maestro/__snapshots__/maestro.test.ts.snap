@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`maestro generateMaestroFlow should generate flowfile and return image names for a story 1`] = `
+"
+appId: com.app.id
+---
+
+- launchApp:
+    arguments:
+        kind: StoryKind
+        name: Name A
+    label: "Open iPhone 15-StoryKind-NameA"
+- assertVisible:
+    id: storykind--name-a
+    label: iPhone 15-StoryKind-NameA
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: iPhone 15-StoryKind-NameA
+"
+`;
+
+exports[`maestro generateMaestroFlow should generate flowfile and return image names for a story with multiple names 1`] = `
+"
+appId: com.app.id
+---
+
+- launchApp:
+    arguments:
+        kind: StoryKind
+        name: Name A
+    label: "Open iPhone 15-StoryKind-NameA"
+- assertVisible:
+    id: storykind--name-a
+    label: iPhone 15-StoryKind-NameA
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: iPhone 15-StoryKind-NameA
+
+- launchApp:
+    arguments:
+        kind: StoryKind
+        name: Name B
+    label: "Open iPhone 15-StoryKind-NameB"
+- assertVisible:
+    id: storykind--name-b
+    label: iPhone 15-StoryKind-NameB
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: iPhone 15-StoryKind-NameB
+"
+`;
+
+exports[`maestro generateMaestroFlow should respect story filter if present 1`] = `
+"
+appId: com.app.id
+---
+
+- launchApp:
+    arguments:
+        kind: StoryKind
+        name: Name B
+    label: "Open iPhone 15-StoryKind-NameB"
+- assertVisible:
+    id: storykind--name-b
+    label: iPhone 15-StoryKind-NameB
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: iPhone 15-StoryKind-NameB
+"
+`;
+
+exports[`maestro generateMaestroFlow should respect story filter if present on multiple kinds 1`] = `
+"
+appId: com.app.id
+---
+
+- launchApp:
+    arguments:
+        kind: StoryKind
+        name: Name B
+    label: "Open iPhone 15-StoryKind-NameB"
+- assertVisible:
+    id: storykind--name-b
+    label: iPhone 15-StoryKind-NameB
+- waitForAnimationToEnd:
+    timeout: 500
+    label: Wait for anminations to settle
+- takeScreenshot: iPhone 15-StoryKind-NameB
+"
+`;
