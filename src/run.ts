@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
-import { orchestrateImages } from "@/images";
+import { processImages } from "@/images/images";
 import { addLine, generateMarkdownReport } from "./report";
 import {
   formatStoryFileToKindWithNames,
@@ -33,7 +33,7 @@ const runVisualRegression = async () => {
 
     await runMaestroFlow(deviceId);
 
-    await orchestrateImages(imageNames, device.name);
+    await processImages(imageNames, device.name);
   }
 };
 

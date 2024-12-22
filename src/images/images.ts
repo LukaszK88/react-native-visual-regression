@@ -1,9 +1,9 @@
 import fs from "fs/promises";
 
-import { addRow } from "./report";
+import { addRow } from "../report";
 import { join } from "path";
 import { PNG } from "pngjs";
-import { logGreen, logRed } from "@/console";
+import { logBlue, logGreen, logRed } from "@/console";
 import { isFilterApplied } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
@@ -11,17 +11,48 @@ import {
   VISUAL_REGRESSION_DIFF_DIR,
 } from "@/paths";
 
-export const orchestrateImages = async (
+/**
+ * If current image does not have a baseline, set one.
+ */
+const checkIfImageHasBaseline = async (
+  baselineImagePath: string,
+  currentImagePath: string,
+  image: string,
+) => {
+  let hasBaseline = false;
+
+  try {
+    await fs.access(baselineImagePath);
+    hasBaseline = true;
+  } catch {
+    hasBaseline = false;
+  }
+
+  // If no baseline, set the current image as baseline
+  if (!hasBaseline) {
+    await fs.rename(currentImagePath, baselineImagePath);
+    logGreen("Set", image, "as baseline");
+
+    addRow({
+      name: image,
+      result: "New",
+      baseline: baselineImagePath,
+    });
+  }
+
+  return hasBaseline;
+};
+
+export const processImages = async (
   imageNames: string[],
   deviceName: string,
 ) => {
   if (imageNames.length === 0) {
-    console.log("No images provided to process.");
+    logBlue("No images provided to process.");
     return;
   }
 
   await fs.mkdir(VISUAL_REGRESSION_BASELINE_DIR, { recursive: true });
-  await fs.mkdir(VISUAL_REGRESSION_CURRENT_DIR, { recursive: true });
   await fs.mkdir(VISUAL_REGRESSION_DIFF_DIR, { recursive: true });
 
   const pixelmatch = (await import("pixelmatch")).default;
@@ -30,26 +61,14 @@ export const orchestrateImages = async (
     const baselineImagePath = join(VISUAL_REGRESSION_BASELINE_DIR, image);
     const currentImagePath = join(VISUAL_REGRESSION_CURRENT_DIR, image);
 
-    let hasBaseline = false;
-
-    try {
-      await fs.access(baselineImagePath);
-      hasBaseline = true;
-    } catch {
-      hasBaseline = false;
-    }
+    const hasBaseline = checkIfImageHasBaseline(
+      baselineImagePath,
+      currentImagePath,
+      image,
+    );
 
     // If no baseline, set the current image as baseline
     if (!hasBaseline) {
-      await fs.rename(currentImagePath, baselineImagePath);
-      logGreen("Set", image, "as baseline");
-
-      addRow({
-        name: image,
-        result: "New",
-        baseline: baselineImagePath,
-      });
-
       continue; // Go to the next image
     }
 

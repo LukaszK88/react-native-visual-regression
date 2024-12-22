@@ -1,7 +1,7 @@
 import { main } from "@/run";
 import { getDeviceIdByName } from "@/utils/device";
 import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
-import { orchestrateImages } from "@/images";
+import { processImages } from "@/images/images";
 import {
   formatStoryFileToKindWithNames,
   getVRStories,
@@ -18,7 +18,7 @@ import {
 jest.mock("@/storybook/stories");
 jest.mock("@/maestro/installation");
 jest.mock("@/maestro/maestro");
-jest.mock("@/images");
+jest.mock("@/images/images");
 jest.mock("@/args", () => ({
   isApproveChanges: undefined,
   fileFilter: undefined,
@@ -58,11 +58,11 @@ describe("run", () => {
     expect(runMaestroFlow).toHaveBeenCalledWith("deviceId");
     expect(runMaestroFlow).toHaveBeenCalledTimes(1);
 
-    expect(orchestrateImages).toHaveBeenCalledWith(
+    expect(processImages).toHaveBeenCalledWith(
       ["imageA", "imageB"],
       "iPhone 15",
     );
-    expect(orchestrateImages).toHaveBeenCalledTimes(1);
+    expect(processImages).toHaveBeenCalledTimes(1);
   });
   it("should run flow for a multiple devices", async () => {
     // @ts-expect-error test
@@ -107,15 +107,15 @@ describe("run", () => {
     expect(runMaestroFlow).toHaveBeenCalledWith("deviceId2");
     expect(runMaestroFlow).toHaveBeenCalledTimes(2);
 
-    expect(orchestrateImages).toHaveBeenCalledWith(
+    expect(processImages).toHaveBeenCalledWith(
       ["imageA", "imageB"],
       "iPhone 15",
     );
-    expect(orchestrateImages).toHaveBeenCalledWith(
+    expect(processImages).toHaveBeenCalledWith(
       ["imageA", "imageB"],
       "Pixel 8",
     );
-    expect(orchestrateImages).toHaveBeenCalledTimes(2);
+    expect(processImages).toHaveBeenCalledTimes(2);
   });
 
   it("should handle approve changes", async () => {
