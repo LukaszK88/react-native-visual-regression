@@ -2,3 +2,4 @@
 /dist
 /visual-regression
 VisualRegressionTestReport.md
+.maestro/visual_regression.yaml

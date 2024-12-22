@@ -1,30 +1,29 @@
 
-appId: com.app.id
+appId: com.anonymous.VisualRegression
 ---
-  
+
 - launchApp:
-    arguments: 
-        kind: StoryKind
-        name: Name A
-    label: "Open iPhone 15-StoryKind-NameA"
+    arguments:
+        kind: MyButton
+        name: Basic
+    label: "Open iPhone 15-MyButton-Basic"
 - assertVisible:
-    id: storykind--name-a
-    label: iPhone 15-StoryKind-NameA
+    id: mybutton--basic
+    label: iPhone 15-MyButton-Basic
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameA
-  
+- takeScreenshot: iPhone 15-MyButton-Basic
+
 - launchApp:
-    arguments: 
-        kind: StoryKind
-        name: Name B
-    label: "Open iPhone 15-StoryKind-NameB"
+    arguments:
+        kind: MyButton
+        name: Another Example
+    label: "Open iPhone 15-MyButton-AnotherExample"
 - assertVisible:
-    id: storykind--name-b
-    label: iPhone 15-StoryKind-NameB
+    id: mybutton--another-example
+    label: iPhone 15-MyButton-AnotherExample
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameB
-  
+- takeScreenshot: iPhone 15-MyButton-AnotherExample

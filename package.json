@@ -11,7 +11,8 @@
     "build": "tsup",
     "build:watch": "tsup --watch",
     "lint": "npx eslint src/**/*.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "run:vr:example": "node ./dist/index.js"
   },
   "keywords": [
     "visual regression",
