@@ -3,6 +3,9 @@ import { writeFileSync } from "fs";
 import * as args from "@/args";
 
 jest.mock("fs");
+jest.mock("@/paths", () => ({
+  VISUAL_REGRESSION_CURRENT_DIR: "VISUAL_REGRESSION_CURRENT_DIR",
+}));
 jest.mock("@/args", () => ({
   storyFilter: "",
 }));

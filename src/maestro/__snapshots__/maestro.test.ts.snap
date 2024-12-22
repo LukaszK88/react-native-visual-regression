@@ -16,7 +16,7 @@ appId: com.app.id
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameA
+- takeScreenshot: VISUAL_REGRESSION_CURRENT_DIR/iPhone 15-StoryKind-NameA
 "
 `;
 
@@ -36,7 +36,7 @@ appId: com.app.id
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameA
+- takeScreenshot: VISUAL_REGRESSION_CURRENT_DIR/iPhone 15-StoryKind-NameA
 
 - launchApp:
     arguments:
@@ -49,7 +49,7 @@ appId: com.app.id
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameB
+- takeScreenshot: VISUAL_REGRESSION_CURRENT_DIR/iPhone 15-StoryKind-NameB
 "
 `;
 
@@ -69,7 +69,7 @@ appId: com.app.id
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameB
+- takeScreenshot: VISUAL_REGRESSION_CURRENT_DIR/iPhone 15-StoryKind-NameB
 "
 `;
 
@@ -89,6 +89,6 @@ appId: com.app.id
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: iPhone 15-StoryKind-NameB
+- takeScreenshot: VISUAL_REGRESSION_CURRENT_DIR/iPhone 15-StoryKind-NameB
 "
 `;
