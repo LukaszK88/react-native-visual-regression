@@ -1,11 +1,14 @@
 import { generateMaestroFlow } from "@/maestro/maestro";
 import { writeFileSync } from "fs";
-import * as index from "@/index";
+import * as args from "@/args";
 
 jest.mock("fs");
-jest.mock("@/index", () => ({
+jest.mock("@/args", () => ({
   storyFilter: "",
+}));
+jest.mock("@/config", () => ({
   appId: "com.app.id",
+  storiesDirectories: [],
 }));
 
 describe("maestro", () => {
@@ -41,7 +44,7 @@ describe("maestro", () => {
 
     it("should respect story filter if present", () => {
       // @ts-expect-error test
-      index.default.storyFilter = "StoryKind-NameB";
+      args.default.storyFilter = "StoryKind-NameB";
 
       const kindWithNames = {
         StoryKind: ["NameA", "NameB"],
@@ -57,7 +60,7 @@ describe("maestro", () => {
 
     it("should respect story filter if present on multiple kinds", () => {
       // @ts-expect-error test
-      index.default.storyFilter = "StoryKind-NameB";
+      args.default.storyFilter = "StoryKind-NameB";
 
       const kindWithNames = {
         StoryKind: ["NameA", "NameB"],

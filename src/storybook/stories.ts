@@ -1,7 +1,8 @@
 import { join, extname, resolve } from "path";
 import fs from "fs";
-import { fileFilter, STORIES_DIR_PATH } from "@/index";
 import { KindWithNames } from "@/types";
+import { fileFilter } from "@/args";
+import { storiesDirectories } from "@/config";
 
 function getStoryFiles(dirs: string[]): string[] {
   let results: string[] = [];
@@ -59,7 +60,7 @@ function extractDefaultTitle(filePath: string) {
 }
 
 export const getVRStories = () => {
-  let storyFiles = getStoryFiles(STORIES_DIR_PATH);
+  let storyFiles = getStoryFiles(storiesDirectories);
 
   if (fileFilter) {
     storyFiles = storyFiles.filter((storyFile) => storyFile === fileFilter);

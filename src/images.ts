@@ -1,15 +1,11 @@
 import fs from "fs/promises";
-import {
-  fileFilter,
-  storyFilter,
-  VISUAL_REGRESSION_BASELINE_DIR,
-  VISUAL_REGRESSION_CURRENT_DIR,
-  VISUAL_REGRESSION_DIFF_DIR,
-} from "./index";
+
 import { addRow } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
-import { logBlue, logGreen, logRed } from "./console";
+import { logBlue, logGreen, logRed } from "@/console";
+import { fileFilter, storyFilter } from "@/args";
+import { VISUAL_REGRESSION_BASELINE_DIR, VISUAL_REGRESSION_CURRENT_DIR, VISUAL_REGRESSION_DIFF_DIR } from "./paths";
 
 export const orchestrateImages = async (
   imageNames: string[],

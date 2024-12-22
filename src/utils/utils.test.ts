@@ -2,12 +2,16 @@ import {
   toKebabCase,
   approveChangesForScreenshots,
   buildScreenshotName,
-} from "@/utils";
+} from "@/utils/utils";
 import { execSync } from "child_process";
 import fs from "fs";
 import { logBlue, logGreen, logRed } from "@/console";
 import { Device } from "@/types";
-import { findEmulatorByAvdName, findSimulatorIdBySimulatorName, getDeviceIdByName } from "@/utils/device";
+import {
+  findEmulatorByAvdName,
+  findSimulatorIdBySimulatorName,
+  getDeviceIdByName,
+} from "@/utils/device";
 
 jest.mock("child_process", () => ({
   execSync: jest.fn(),

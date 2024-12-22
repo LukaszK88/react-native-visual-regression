@@ -2,11 +2,15 @@ import {
   formatStoryFileToKindWithNames,
   getVRStories,
 } from "@/storybook/stories";
-import * as index from "@/index";
+import * as args from "@/args";
+import * as config from "@/config";
 
-jest.mock("@/index", () => ({
-  STORIES_DIR_PATH: ["/path/to/stories"],
-  fileFilter: null,
+jest.mock("@/config", () => ({
+  storiesDirectories: ["/path/to/stories"],
+}));
+
+jest.mock("@/args", () => ({
+  fileFilter: undefined,
 }));
 
 describe("formatStoryFileToKindWithNames", () => {
@@ -41,7 +45,7 @@ describe("formatStoryFileToKindWithNames", () => {
 describe("getVRStories", () => {
   it("should return kind with names for a directory", () => {
     // @ts-expect-error test
-    index.default.STORIES_DIR_PATH = ["src/storybook/fixtures"];
+    config.default.storiesDirectories = ["src/storybook/fixtures"];
 
     expect(getVRStories()).toEqual({
       Component: ["Basic", "SecondName"],
@@ -52,9 +56,9 @@ describe("getVRStories", () => {
 
   it("should respect a file filter", () => {
     // @ts-expect-error test
-    index.default.STORIES_DIR_PATH = ["src/storybook/fixtures"];
+    config.default.storiesDirectories = ["src/storybook/fixtures"];
     // @ts-expect-error test
-    index.default.fileFilter =
+    args.default.fileFilter =
       "src/storybook/fixtures/multiple-names.stories.tsx";
 
     expect(getVRStories()).toEqual({

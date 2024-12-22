@@ -1,10 +1,10 @@
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
-} from "./index";
+} from "@/paths";
 import { join } from "path";
 import fs from "fs";
-import { logGreen, logRed } from "./console";
+import { logGreen, logRed } from "@/console";
 
 export function toKebabCase(str: string) {
   return str

@@ -1,10 +1,11 @@
 import fs from "fs";
-import { appId, storyFilter } from "@/index";
+import { appId } from "@/config";
 import { join } from "path";
 import { exec } from "child_process";
-import { toKebabCase } from "@/utils";
+import { toKebabCase } from "@/utils/utils";
 import { logBlue, logGreen } from "@/console";
 import { KindWithNames } from "@/types";
+import { storyFilter } from "@/args";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
