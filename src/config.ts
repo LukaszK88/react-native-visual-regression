@@ -1,5 +1,6 @@
 import path from "path";
 import { Device } from "@/types";
+import { devicesFilter } from "@/args";
 
 function getRootConfigPath() {
   const rootDir = process.cwd();
@@ -17,4 +18,7 @@ export const config = require(configPath) as {
 
 export const appId = config.appId;
 export const storiesDirectories = config.storiesDirectories;
-export const devices = config.devices;
+
+export const devices = devicesFilter
+  ? config.devices.filter((device) => devicesFilter.includes(device.name))
+  : config.devices;
