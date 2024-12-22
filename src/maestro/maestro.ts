@@ -6,6 +6,7 @@ import { toKebabCase } from "@/utils/utils";
 import { logBlue, logGreen } from "@/console";
 import { KindWithNames } from "@/types";
 import { storyFilter } from "@/args";
+import { VISUAL_REGRESSION_CURRENT_DIR } from "@/paths";
 
 const flowFilePath = join(".maestro", `visual_regression.yaml`);
 
@@ -43,7 +44,7 @@ appId: ${appId}
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: ${fullName}
+- takeScreenshot: ${VISUAL_REGRESSION_CURRENT_DIR}/${fullName}
 `;
     });
   });

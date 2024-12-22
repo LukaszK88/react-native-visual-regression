@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import { addRow } from "./report";
 import { join } from "path";
 import { PNG } from "pngjs";
-import { logBlue, logGreen, logRed } from "@/console";
+import { logGreen, logRed } from "@/console";
 import { isFilterApplied } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
@@ -28,6 +28,8 @@ export const orchestrateImages = async (
 
   for (const image of imageNames) {
     const baselineImagePath = join(VISUAL_REGRESSION_BASELINE_DIR, image);
+    const currentImagePath = join(VISUAL_REGRESSION_CURRENT_DIR, image);
+
     let hasBaseline = false;
 
     try {
@@ -39,7 +41,7 @@ export const orchestrateImages = async (
 
     // If no baseline, set the current image as baseline
     if (!hasBaseline) {
-      await fs.rename(image, baselineImagePath);
+      await fs.rename(currentImagePath, baselineImagePath);
       logGreen("Set", image, "as baseline");
 
       addRow({
@@ -49,18 +51,6 @@ export const orchestrateImages = async (
       });
 
       continue; // Go to the next image
-    }
-
-    // If baseline exists, move the current image to the current directory
-    const moveImage = await fs
-      .access(image)
-      .then(() => true)
-      .catch(() => false);
-    const currentImagePath = join(VISUAL_REGRESSION_CURRENT_DIR, image);
-
-    if (moveImage) {
-      await fs.rename(image, currentImagePath);
-      logBlue("Set", image, "as current");
     }
 
     // Read baseline and current images
