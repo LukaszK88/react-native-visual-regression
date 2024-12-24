@@ -1,18 +1,19 @@
 import fs from "fs";
 
-import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
+import {
+  generateMaestroFlows,
+  spawnAll,
+} from "@/maestro/maestro";
 import { processImages } from "@/images/images";
 import { addLine, generateMarkdownReport } from "./report";
 import {
   formatStoryFileToKindWithNames,
-  getVRStories,
 } from "@/storybook/stories";
 import {
   approveChangesForScreenshots,
   buildScreenshotName,
 } from "@/utils/utils";
 import { logGreen } from "@/console";
-import { getDeviceIdByName } from "@/utils/device";
 import { verifyMaestroInstall } from "@/maestro/installation";
 import { devices } from "@/config";
 import { isApproveChanges, fileFilter, storyFilter } from "@/args";
@@ -20,21 +21,19 @@ import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
 } from "@/paths";
+import { initStore } from "@/store";
+
 
 const runVisualRegression = async () => {
-  const kindWithNames = getVRStories();
+  initStore();
+
   verifyMaestroInstall();
   generateMarkdownReport();
 
-  for (const device of devices) {
-    const deviceId = getDeviceIdByName(device);
+  generateMaestroFlows();
 
-    const { imageNames } = generateMaestroFlow(kindWithNames, device.name);
-
-    await runMaestroFlow(deviceId);
-
-    await processImages(imageNames, device.name);
-  }
+  await spawnAll();
+  await processImages();
 };
 
 const handleApproveChanges = () => {

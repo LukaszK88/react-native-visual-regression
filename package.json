@@ -56,6 +56,7 @@
   "dependencies": {
     "arg": "^5.0.2",
     "pixelmatch": "^6.0.0",
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "zustand": "^5.0.2"
   }
 }

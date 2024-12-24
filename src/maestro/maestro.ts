@@ -1,38 +1,32 @@
 import fs from "fs";
-import { appId } from "@/config";
+import { appId, devices } from "@/config";
 import { join } from "path";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import { toKebabCase } from "@/utils/utils";
-import { logBlue, logGreen } from "@/console";
-import { KindWithNames } from "@/types";
-import { storyFilter } from "@/args";
+import { logBlue, logGreen, logRed } from "@/console";
 import { VISUAL_REGRESSION_CURRENT_DIR } from "@/paths";
+import { vrStore } from "@/store";
+import { getDeviceIdByName } from "@/utils/device";
 
-const flowFilePath = join(".maestro", `visual_regression.yaml`);
+/**
+ * Generate a flow per device for concurent run.
+ */
+export const generateMaestroFlows = () => {
+  devices.forEach((device) => {
+    generateMaestroFlow(device.name);
+  });
+};
 
-export const generateMaestroFlow = (
-  kindWithNames: KindWithNames,
-  deviceName: string,
-) => {
-  const imageNames: string[] = [];
-
+export const generateMaestroFlow = (deviceName: string) => {
   let flowContent = `
 appId: ${appId}
 ---
 `;
 
-  Object.keys(kindWithNames).forEach((kind) => {
-    // ignore any kind which does not start with storyFilter
-    if (storyFilter && !storyFilter.startsWith(kind)) {
-      return;
-    }
-    kindWithNames[kind].forEach((name) => {
-      if (storyFilter && !storyFilter.endsWith(name)) {
-        return;
-      }
-      const fullName = `${deviceName}-${kind}-${name}`;
-      imageNames.push(`${fullName}.png`);
-      flowContent += `
+  const { stories } = vrStore.getState();
+
+  stories.forEach(({ kind, name, fullName }) => {
+    flowContent += `
 - launchApp:
     arguments:
         kind: ${kind}
@@ -44,10 +38,11 @@ appId: ${appId}
 - waitForAnimationToEnd:
     timeout: 500
     label: Wait for anminations to settle
-- takeScreenshot: ${VISUAL_REGRESSION_CURRENT_DIR}/${fullName}
+- takeScreenshot: ${VISUAL_REGRESSION_CURRENT_DIR}/${deviceName}/${fullName}
 `;
-    });
   });
+
+  const flowFilePath = join(".maestro", `${deviceName}_visual_regression.yaml`);
 
   if (fs.existsSync(flowFilePath)) {
     fs.rmSync(flowFilePath);
@@ -57,34 +52,71 @@ appId: ${appId}
 
   logBlue(`Running regression on ${deviceName} for the following scenarios:`);
 
-  imageNames.forEach((image) => {
-    logGreen(`- ${image}`);
+  stories.forEach(({ fullName }) => {
+    logGreen(`- ${fullName}`);
   });
-
-  return {
-    imageNames,
-  };
 };
 
-// Run Maestro flow and capture screenshot
-export const runMaestroFlow = (deviceId: string) => {
+function spawnCommand(cmd: string, args: string[]) {
+  logBlue(`Starting command: ${cmd} ${args.join(" ")}`);
+
   return new Promise((resolve, reject) => {
-    let maestroCommand = ["maestro"];
+    const process = spawn(cmd, args);
 
-    if (deviceId) {
-      maestroCommand = maestroCommand.concat(["--device", deviceId]);
-    }
+    let stdout = "";
+    let stderr = "";
 
-    const command = `${maestroCommand.join(" ")} test ${flowFilePath}`;
+    process.stdout.on("data", (data) => {
+      const output = data.toString();
+      stdout += output;
+      console.log(`[${cmd}]${output.trim()}`);
+    });
 
-    console.info(command);
+    process.stderr.on("data", (data) => {
+      const errorOutput = data.toString();
+      stderr += errorOutput;
+      logRed(`[${cmd}]${errorOutput.trim()}`);
+    });
 
-    exec(command, (error) => {
-      if (error) {
-        console.error(`Error executing Maestro flow: ${error}`);
-        return reject(error);
+    process.on("close", (code) => {
+      if (code === 0) {
+        logBlue(`Command completed successfully: ${cmd}`);
+        resolve(stdout.trim());
+      } else {
+        console.error(`Command failed with exit code ${code}: ${cmd}`);
+        reject(stderr.trim());
       }
-      resolve(true);
-    }).stdout?.pipe(process.stdout);
+    });
+
+    process.on("error", (error) => {
+      console.error(`Error starting command: ${cmd} - ${error.message}`);
+      reject(error.message);
+    });
   });
+}
+
+export const spawnAll = async () => {
+  const commands: [string, string[]][] = devices.map((device) => {
+    const deviceId = getDeviceIdByName(device);
+    return [
+      "maestro",
+      [
+        "--device",
+        deviceId,
+        "test",
+        join(".maestro", `${device.name}_visual_regression.yaml`),
+      ],
+    ];
+  });
+
+  await Promise.all(
+    commands.map(
+      ([cmd, args], index) =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(spawnCommand(cmd, args));
+          }, index * 1000);
+        }),
+    ),
+  );
 };

@@ -1,3 +1,4 @@
+import { logBlue, logRed } from "@/console";
 import { execSync } from "child_process";
 
 function isMaestroInstalledGlobally() {
@@ -13,13 +14,13 @@ function isMaestroInstalledGlobally() {
 
 function installMaestro() {
   try {
-    console.log("Maestro is not installed globally. Installing now...");
+    logBlue("Maestro is not installed globally. Installing now...");
     execSync('curl -fsSL "https://get.maestro.mobile.dev" | bash', {
       stdio: "inherit",
     });
-    console.log("Maestro has been installed globally.");
+    logBlue("Maestro has been installed globally.");
   } catch (error) {
-    console.error(
+    logRed(
       "Failed to install Maestro globally:",
       (error as unknown as Error).message,
     );
