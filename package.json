@@ -42,6 +42,7 @@
     "@types/node": "^22.5.0",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
+    "appium-uiautomator2-driver": "^3.9.5",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -51,9 +52,11 @@
     "ts-jest": "^29.2.5",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.2.0"
+    "typescript-eslint": "^8.2.0",
+    "webdriverio": "^9.4.5"
   },
   "dependencies": {
+    "appium": "^2.13.1",
     "arg": "^5.0.2",
     "pixelmatch": "^6.0.0",
     "pngjs": "^7.0.0",

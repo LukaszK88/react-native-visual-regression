@@ -115,7 +115,7 @@ export const spawnAll = async () => {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(spawnCommand(cmd, args));
-          }, index * 1000);
+          }, index * 2000);
         }),
     ),
   );
