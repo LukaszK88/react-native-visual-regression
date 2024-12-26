@@ -58,8 +58,21 @@ export const processImages = async () => {
 
   const pixelmatch = (await import("pixelmatch")).default;
 
+  // Track results per device
+  const deviceResults: Record<
+    string,
+    { passedTests: string[]; failedTests: string[]; newBaselines: string[] }
+  > = {};
+
   for (const device of devices) {
-    // create dirs per device if they don't exist yet
+    // Initialize results for this device
+    deviceResults[device.name] = {
+      passedTests: [],
+      failedTests: [],
+      newBaselines: [],
+    };
+
+    // Create dirs per device if they don't exist yet
     await fs.mkdir(join(VISUAL_REGRESSION_BASELINE_DIR, device.name), {
       recursive: true,
     });
@@ -88,6 +101,7 @@ export const processImages = async () => {
 
       // If no baseline, set the current image as baseline
       if (!hasBaseline) {
+        deviceResults[device.name].newBaselines.push(story.fullName);
         continue; // Go to the next image
       }
 
@@ -116,11 +130,15 @@ export const processImages = async () => {
 
         await fs.writeFile(diffImagePath, PNG.sync.write(diff));
 
-        const statusMd = pixelDiff > 0 ? `❌` : `✅`;
+        if (pixelDiff > 0) {
+          deviceResults[device.name].failedTests.push(story.fullName);
+        } else {
+          deviceResults[device.name].passedTests.push(story.fullName);
+        }
 
         addRow({
           name: image,
-          result: statusMd,
+          result: pixelDiff > 0 ? `❌` : `✅`,
           baseline: baselineImagePath,
           current: currentImagePath,
           diff: diffImagePath,
@@ -133,6 +151,8 @@ export const processImages = async () => {
           console.log(
             `Image sizes do not match for ${image}. Baseline: ${baselineImagePath}, Current: ${currentImagePath}`,
           );
+
+          deviceResults[device.name].failedTests.push(story.fullName);
 
           addRow({
             name: image,
@@ -148,6 +168,36 @@ export const processImages = async () => {
 
     // Clean up obsolete images
     await deleteObsoleteImages(stories, device.name);
+  }
+
+  // Summary Output grouped by device
+  console.log("\nTest Summary:");
+  console.log("-----------------------------");
+
+  // Output the results per device
+  for (const deviceName of Object.keys(deviceResults)) {
+    const results = deviceResults[deviceName];
+
+    console.log(`\n📱 Device: ${deviceName}`);
+    console.log("-----------------------------");
+
+    logGreen(`Passed Tests (${results.passedTests.length}):`);
+    results.passedTests.forEach((test) => console.log(`  ✅ ${test}`));
+
+    console.log("");
+    logRed(`Failed Tests (${results.failedTests.length}):`);
+    results.failedTests.forEach((test) => console.log(`  ❌ ${test}`));
+
+    console.log("");
+    logBlue(`New Baselines (${results.newBaselines.length}):`);
+    results.newBaselines.forEach((test) => console.log(`  📸 ${test}`));
+
+    console.log("");
+    console.log(
+      `Total: ${results.passedTests.length + results.failedTests.length + results.newBaselines.length}, Passed: ${results.passedTests.length}, Failed: ${results.failedTests.length}, New: ${results.newBaselines.length}`,
+    );
+    console.log("");
+    console.log("");
   }
 };
 
