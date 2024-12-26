@@ -1,9 +1,7 @@
 import { main } from "@/run";
-import { getDeviceIdByName } from "@/utils/device";
 import { processImages } from "@/images/images";
 import {
   formatStoryFileToKindWithNames,
-  getVRStories,
 } from "@/storybook/stories";
 import * as config from "@/config";
 import * as args from "@/args";
@@ -13,6 +11,8 @@ import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
 } from "@/paths";
+import { captureScreenshots } from "@/driver";
+import { initStore } from "@/store";
 
 jest.mock("@/storybook/stories");
 jest.mock("@/images/images");
@@ -27,51 +27,16 @@ jest.mock("@/config", () => ({
 }));
 
 jest.mock("fs");
+jest.mock("@/driver");
+jest.mock("@/store");
 
 describe("run", () => {
   it("should run flow for a single device", async () => {
-    jest.mocked(getVRStories).mockReturnValue({
-      Component: ["Basic", "SecondName"],
-      ComponentB: ["Basic", "Second", "Third", "Fourth"],
-      SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
-    });
-    jest.mocked(getDeviceIdByName).mockReturnValue("deviceId");
-
     await main();
 
-    expect(processImages).toHaveBeenCalledWith(
-      ["imageA", "imageB"],
-      "iPhone 15",
-    );
+    expect(captureScreenshots).toHaveBeenCalledTimes(1);
     expect(processImages).toHaveBeenCalledTimes(1);
-  });
-  it("should run flow for a multiple devices", async () => {
-    // @ts-expect-error test
-    config.default.devices = [
-      { platform: "ios", name: "iPhone 15" },
-      { platform: "android", name: "Pixel 8" },
-    ];
-
-    jest.mocked(getVRStories).mockReturnValue({
-      Component: ["Basic", "SecondName"],
-      ComponentB: ["Basic", "Second", "Third", "Fourth"],
-      SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
-    });
-    jest.mocked(getDeviceIdByName).mockReturnValueOnce("deviceId");
-    jest.mocked(getDeviceIdByName).mockReturnValueOnce("deviceId2");
-
-    await main();
-
-
-    expect(processImages).toHaveBeenCalledWith(
-      ["imageA", "imageB"],
-      "iPhone 15",
-    );
-    expect(processImages).toHaveBeenCalledWith(
-      ["imageA", "imageB"],
-      "Pixel 8",
-    );
-    expect(processImages).toHaveBeenCalledTimes(2);
+    expect(initStore).toHaveBeenCalledTimes(1);
   });
 
   it("should handle approve changes", async () => {
@@ -110,10 +75,8 @@ describe("run", () => {
     await main();
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
-      "iPhone 15-Component-Basic.png",
-      "iPhone 15-Component-SecondName.png",
-      "Pixel 8-Component-Basic.png",
-      "Pixel 8-Component-SecondName.png",
+      "Component-Basic.png",
+      "Component-SecondName.png",
     ]);
   });
 
@@ -142,8 +105,7 @@ describe("run", () => {
     await main();
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
-      "iPhone 15-Component-SecondName.png",
-      "Pixel 8-Component-SecondName.png",
+      "Component-SecondName.png",
     ]);
   });
 });

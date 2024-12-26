@@ -31,6 +31,13 @@ jest.mock("@/index", () => ({
   VISUAL_REGRESSION_CURRENT_DIR: "VISUAL_REGRESSION_CURRENT_DIR",
 }));
 
+jest.mock("@/config", () => ({
+  devices: [
+    { platform: "ios", name: "iPhone 15" },
+    { platform: "android", name: "Pixel_8_API_34" },
+  ],
+}));
+
 describe("toKebabCase", () => {
   it("converts camelCase to kebab-case", () => {
     expect(toKebabCase("camelCaseString")).toBe("camel-case-string");
@@ -113,12 +120,26 @@ describe("getDeviceIdByName", () => {
 
 describe("approveChangesForScreenshots", () => {
   it("copies screenshot when it exists", () => {
-    jest.mocked(fs.existsSync).mockReturnValueOnce(true);
+    jest.mocked(fs.existsSync).mockReturnValue(true);
     approveChangesForScreenshots(["screenshot1.png"]);
-    expect(fs.copyFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("screenshot1.png"),
-      expect.stringContaining("screenshot1.png"),
+
+    expect(fs.existsSync).toHaveBeenCalledWith(
+      "visual-regression/current/iPhone 15/screenshot1.png",
     );
+    expect(fs.existsSync).toHaveBeenCalledWith(
+      "visual-regression/current/Pixel_8_API_34/screenshot1.png",
+    );
+
+    expect(fs.copyFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/iPhone 15/screenshot1.png",
+      "visual-regression/baseline/iPhone 15/screenshot1.png",
+    );
+
+    expect(fs.copyFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/Pixel_8_API_34/screenshot1.png",
+      "visual-regression/baseline/Pixel_8_API_34/screenshot1.png",
+    );
+
     expect(logGreen).toHaveBeenCalledWith(
       "Updated as new baseline:",
       "screenshot1.png",

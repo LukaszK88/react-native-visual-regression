@@ -5,6 +5,7 @@ import {
 import { join } from "path";
 import fs from "fs";
 import { logGreen, logRed } from "@/console";
+import { devices } from "@/config";
 
 export function toKebabCase(str: string) {
   return str
@@ -14,18 +15,24 @@ export function toKebabCase(str: string) {
 }
 
 export const approveChangesForScreenshots = (screenshots: string[]) => {
-  screenshots.forEach((screenshot) => {
-    const currentScreenshot = join(VISUAL_REGRESSION_CURRENT_DIR, screenshot);
-    if (!fs.existsSync(currentScreenshot)) {
-      logRed("Given", currentScreenshot, "does not exist");
-      return;
-    }
+  devices.forEach((device) => {
+    screenshots.forEach((screenshot) => {
+      const currentScreenshot = join(
+        VISUAL_REGRESSION_CURRENT_DIR,
+        device.name,
+        screenshot,
+      );
+      if (!fs.existsSync(currentScreenshot)) {
+        logRed("Given", currentScreenshot, "does not exist");
+        return;
+      }
 
-    fs.copyFileSync(
-      join(VISUAL_REGRESSION_CURRENT_DIR, screenshot),
-      join(VISUAL_REGRESSION_BASELINE_DIR, screenshot),
-    );
-    logGreen("Updated as new baseline:", screenshot);
+      fs.copyFileSync(
+        join(VISUAL_REGRESSION_CURRENT_DIR, device.name, screenshot),
+        join(VISUAL_REGRESSION_BASELINE_DIR, device.name, screenshot),
+      );
+      logGreen("Updated as new baseline:", screenshot);
+    });
   });
 };
 

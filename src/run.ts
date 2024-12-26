@@ -3,10 +3,8 @@ import fs from "fs";
 import { formatStoryFileToKindWithNames } from "@/storybook/stories";
 import {
   approveChangesForScreenshots,
-  buildScreenshotName,
 } from "@/utils/utils";
 import { logGreen } from "@/console";
-import { devices } from "@/config";
 import { isApproveChanges, fileFilter, storyFilter } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
@@ -30,21 +28,18 @@ const handleApproveChanges = () => {
   if (fileFilter) {
     const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
 
-    const screenshotNames: string[] = [];
     const kind = Object.keys(kindWithNames)[0];
-    devices.forEach((device) => {
-      kindWithNames[kind].forEach((name) => {
-        screenshotNames.push(buildScreenshotName(device.name, kind, name));
-      });
-    });
 
-    approveChangesForScreenshots(screenshotNames);
+    const screenshots = kindWithNames[kind].map(
+      (name) => `${kind}-${name}.png`,
+    );
+
+    approveChangesForScreenshots(screenshots);
     return;
   }
 
   if (storyFilter) {
-    const screenshotNames = devices.map((d) => `${d.name}-${storyFilter}.png`);
-    approveChangesForScreenshots(screenshotNames);
+    approveChangesForScreenshots([`${storyFilter}.png`]);
     return;
   }
 

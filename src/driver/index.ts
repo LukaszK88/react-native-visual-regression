@@ -126,7 +126,7 @@ export const captureScreenshots = async () => {
       }),
     );
   } catch (e) {
-    logRed("Capture failed", e);
+    logRed("Capture failed", e as unknown as string);
     throw new Error("test run failed");
   } finally {
     appiumProcess.kill("SIGINT");
