@@ -7,6 +7,8 @@ import { toKebabCase } from "@/utils/utils";
 import { join } from "path";
 import { remote } from "webdriverio";
 import fs from "fs";
+import { spawn } from "child_process";
+import { logRed } from "@/console";
 
 type Config = Parameters<typeof remote>[0];
 
@@ -94,9 +96,20 @@ const processStoriesSequentially = async (device: Device, stories: Story[]) => {
 export const captureScreenshots = async () => {
   const { stories } = vrStore.getState();
 
-  return await Promise.all(
-    devices.map(async (device) => {
-      await processStoriesSequentially(device, stories);
-    }),
-  );
+  const appiumProcess = spawn("npx", ["appium"], {
+    stdio: "pipe",
+    shell: true,
+  });
+
+  try {
+    await Promise.all(
+      devices.map(async (device) => {
+        await processStoriesSequentially(device, stories);
+      }),
+    );
+  } catch (e) {
+    logRed("Capture failed", e);
+  } finally {
+    appiumProcess.kill("SIGINT");
+  }
 };
