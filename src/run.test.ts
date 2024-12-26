@@ -1,6 +1,5 @@
 import { main } from "@/run";
 import { getDeviceIdByName } from "@/utils/device";
-import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
 import { processImages } from "@/images/images";
 import {
   formatStoryFileToKindWithNames,
@@ -16,8 +15,6 @@ import {
 } from "@/paths";
 
 jest.mock("@/storybook/stories");
-jest.mock("@/maestro/installation");
-jest.mock("@/maestro/maestro");
 jest.mock("@/images/images");
 jest.mock("@/args", () => ({
   isApproveChanges: undefined,
@@ -39,24 +36,8 @@ describe("run", () => {
       SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
     });
     jest.mocked(getDeviceIdByName).mockReturnValue("deviceId");
-    jest.mocked(generateMaestroFlow).mockReturnValue({
-      imageNames: ["imageA", "imageB"],
-    });
 
     await main();
-
-    expect(generateMaestroFlow).toHaveBeenCalledWith(
-      {
-        Component: ["Basic", "SecondName"],
-        ComponentB: ["Basic", "Second", "Third", "Fourth"],
-        SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
-      },
-      "iPhone 15",
-    );
-    expect(generateMaestroFlow).toHaveBeenCalledTimes(1);
-
-    expect(runMaestroFlow).toHaveBeenCalledWith("deviceId");
-    expect(runMaestroFlow).toHaveBeenCalledTimes(1);
 
     expect(processImages).toHaveBeenCalledWith(
       ["imageA", "imageB"],
@@ -78,34 +59,9 @@ describe("run", () => {
     });
     jest.mocked(getDeviceIdByName).mockReturnValueOnce("deviceId");
     jest.mocked(getDeviceIdByName).mockReturnValueOnce("deviceId2");
-    jest.mocked(generateMaestroFlow).mockReturnValue({
-      imageNames: ["imageA", "imageB"],
-    });
 
     await main();
 
-    expect(generateMaestroFlow).toHaveBeenCalledWith(
-      {
-        Component: ["Basic", "SecondName"],
-        ComponentB: ["Basic", "Second", "Third", "Fourth"],
-        SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
-      },
-      "iPhone 15",
-    );
-
-    expect(generateMaestroFlow).toHaveBeenCalledWith(
-      {
-        Component: ["Basic", "SecondName"],
-        ComponentB: ["Basic", "Second", "Third", "Fourth"],
-        SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
-      },
-      "Pixel 8",
-    );
-    expect(generateMaestroFlow).toHaveBeenCalledTimes(2);
-
-    expect(runMaestroFlow).toHaveBeenCalledWith("deviceId");
-    expect(runMaestroFlow).toHaveBeenCalledWith("deviceId2");
-    expect(runMaestroFlow).toHaveBeenCalledTimes(2);
 
     expect(processImages).toHaveBeenCalledWith(
       ["imageA", "imageB"],
@@ -129,7 +85,6 @@ describe("run", () => {
       VISUAL_REGRESSION_BASELINE_DIR,
       { recursive: true },
     );
-    expect(generateMaestroFlow).not.toHaveBeenCalled();
   });
 
   it("should handle approva changes with a file filter", async () => {
@@ -153,7 +108,6 @@ describe("run", () => {
       .mockReturnValue(undefined);
 
     await main();
-    expect(generateMaestroFlow).not.toHaveBeenCalled();
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
       "iPhone 15-Component-Basic.png",
@@ -186,7 +140,6 @@ describe("run", () => {
       .mockReturnValue(undefined);
 
     await main();
-    expect(generateMaestroFlow).not.toHaveBeenCalled();
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
       "iPhone 15-Component-SecondName.png",

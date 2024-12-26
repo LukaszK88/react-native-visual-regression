@@ -1,5 +1,7 @@
+export type Platform = "android" | "ios";
+
 export type Device = {
-  platform: "android" | "ios";
+  platform: Platform;
   name: string;
 };
 
