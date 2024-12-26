@@ -43,6 +43,7 @@
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
     "appium-uiautomator2-driver": "^3.9.5",
+    "appium-xcuitest-driver": "^7.35.0",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",

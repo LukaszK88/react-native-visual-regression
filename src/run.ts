@@ -30,16 +30,6 @@ function ensureDirectoryExistence(filePath: string) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-const capabilities: WebdriverIO.Capabilities = {
-  platformName: "Android",
-  "appium:automationName": "UiAutomator2",
-  "appium:deviceName": "Pixel_8_API_35",
-  "appium:appPackage": config.appId,
-  "appium:appActivity": ".MainActivity",
-  "appium:forceAppLaunch": true,
-  "appium:optionalIntentArguments": "--es kind MyButton --es name Basic",
-};
-
 const runVisualRegression = async () => {
   initStore();
 
@@ -47,24 +37,53 @@ const runVisualRegression = async () => {
 
   for (const device of devices) {
     for (const story of stories) {
-      const driver = await remote({
-        hostname: "localhost",
-        port: 4723,
-        logLevel: "info",
-        capabilities: {
-          platformName: "Android",
-          "appium:automationName": "UiAutomator2",
-          "appium:deviceName": device.name,
-          "appium:appPackage": config.appId,
-          "appium:appActivity": ".MainActivity",
-          "appium:forceAppLaunch": true,
-          "appium:optionalIntentArguments": `--es kind ${story.kind} --es name ${story.name.replace(/([A-Z])/g, " $1").trim()}`,
-        },
-      });
+      let selector;
+      let element;
+      let driver;
+      if (device.platform === "android") {
+        driver = await remote({
+          hostname: "localhost",
+          port: 4723,
+          logLevel: "info",
+          capabilities: {
+            platformName: "Android",
+            "appium:automationName": "UiAutomator2",
+            "appium:deviceName": device.name,
+            "appium:appPackage": config.appId,
+            "appium:appActivity": ".MainActivity",
+            "appium:forceAppLaunch": true,
+            "appium:optionalIntentArguments": `--es kind ${story.kind} --es name ${story.name.replace(/([A-Z])/g, " $1").trim()}`,
+          },
+        });
 
-      const selector = `new UiSelector().resourceId("${story.kind.toLowerCase()}--${toKebabCase(story.name)}")`;
-      const element = await driver.$(`android=${selector}`);
+        selector = `new UiSelector().resourceId("${story.kind.toLowerCase()}--${toKebabCase(story.name)}")`;
+        element = await driver.$(`android=${selector}`);
+      } else {
+        driver = await remote({
+          hostname: "localhost",
+          port: 4723,
+          logLevel: "info",
+          capabilities: {
+            platformName: "iOS",
+            "appium:automationName": "XCUITest",
+            "appium:deviceName": device.name,
+            "appium:platformVersion": "17.5",
+            "appium:bundleId": config.appId,
+            "appium:processArguments": {
+              args: [
+                "-kind",
+                story.kind,
+                "-name",
+                story.name.replace(/([A-Z])/g, " $1").trim(),
+              ],
+            },
+          },
+        });
 
+        element = await driver.$(
+          `~${story.kind.toLowerCase()}--${toKebabCase(story.name)}`,
+        );
+      }
       await element.waitForDisplayed({ timeout: 5000 });
 
       const screenshot = await driver.takeScreenshot();
