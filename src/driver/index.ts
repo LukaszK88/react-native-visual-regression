@@ -1,4 +1,4 @@
-import { config, devices } from "@/config";
+import { appId, devices } from "@/config";
 import { VISUAL_REGRESSION_CURRENT_DIR } from "@/paths";
 import { vrStore } from "@/store";
 import { Device, Story } from "@/types";
@@ -27,7 +27,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
         platformName: "Android",
         "appium:automationName": "UiAutomator2",
         "appium:deviceName": device.name,
-        "appium:appPackage": config.appId,
+        "appium:appPackage": appId,
         "appium:appActivity": ".MainActivity",
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments": `--es kind ${story.kind} --es name ${story.name.replace(/([A-Z])/g, " $1").trim()}`,
@@ -50,7 +50,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
       "appium:automationName": "XCUITest",
       "appium:deviceName": device.name,
       "appium:platformVersion": "17.5",
-      "appium:bundleId": config.appId,
+      "appium:bundleId": appId,
       "appium:processArguments": {
         args: [
           "-kind",
