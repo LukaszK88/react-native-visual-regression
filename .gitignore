@@ -2,5 +2,4 @@
 /dist
 /visual-regression
 VisualRegressionTestReport.md
-.maestro/*_visual_regression.yaml
 coverage

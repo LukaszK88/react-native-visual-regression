@@ -20,7 +20,7 @@ jest.mock("fs", () => ({
   existsSync: jest.fn(),
   copyFileSync: jest.fn(),
 }));
-jest.mock("../console", () => ({
+jest.mock("@/console", () => ({
   logBlue: jest.fn(),
   logGreen: jest.fn(),
   logRed: jest.fn(),

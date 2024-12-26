@@ -1,6 +1,7 @@
 import { PNG } from "pngjs";
 import { processImages } from "./images";
 import { access, mkdir, readdir, rename, writeFile } from "fs/promises";
+import { vrStore } from "@/store";
 
 const mockPixelmatch = jest.fn();
 jest.mock("pixelmatch", () => ({
@@ -22,9 +23,22 @@ jest.mock("pngjs", () => {
   };
 });
 
+jest.mock("@/store", () => ({
+  vrStore: {
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock("@/args");
+jest.mock("@/config", () => ({
+  devices: [{ platform: "ios", name: "iPhone 15" }],
+}));
+
 describe("images", () => {
   it("should do nothing if there are no images to process", async () => {
-    expect(await processImages([], "Pixel")).toBeUndefined();
+    jest.mocked(vrStore.getState).mockReturnValue({ stories: [] });
+
+    expect(await processImages()).toBeUndefined();
   });
 
   it("should handle images without a baseline", async () => {
@@ -38,7 +52,17 @@ describe("images", () => {
     jest.mocked(readdir).mockResolvedValue([]);
     jest.mocked(access).mockRejectedValue("does not exist");
 
-    await processImages(["StoryKind-NameA.png"], "Pixel");
+    jest.mocked(vrStore.getState).mockReturnValue({
+      stories: [
+        {
+          fullName: "StoryKind-NameA",
+          kind: "StoryKind",
+          name: "NameA",
+        },
+      ],
+    });
+
+    await processImages();
 
     expect(mkdir).toHaveBeenCalledWith("visual-regression/baseline", {
       recursive: true,
@@ -48,11 +72,11 @@ describe("images", () => {
     });
 
     expect(access).toHaveBeenCalledWith(
-      "visual-regression/baseline/StoryKind-NameA.png",
+      "visual-regression/baseline/iPhone 15/StoryKind-NameA.png",
     );
     expect(rename).toHaveBeenCalledWith(
-      "visual-regression/current/StoryKind-NameA.png",
-      "visual-regression/baseline/StoryKind-NameA.png",
+      "visual-regression/current/iPhone 15/StoryKind-NameA.png",
+      "visual-regression/baseline/iPhone 15/StoryKind-NameA.png",
     );
   });
 
@@ -67,7 +91,17 @@ describe("images", () => {
     jest.mocked(readdir).mockResolvedValue([]);
     jest.mocked(access).mockResolvedValue(undefined);
 
-    await processImages(["StoryKind-NameA.png"], "Pixel");
+    jest.mocked(vrStore.getState).mockReturnValue({
+      stories: [
+        {
+          fullName: "StoryKind-NameA",
+          kind: "StoryKind",
+          name: "NameA",
+        },
+      ],
+    });
+
+    await processImages();
 
     expect(mkdir).toHaveBeenCalledWith("visual-regression/baseline", {
       recursive: true,
@@ -77,7 +111,7 @@ describe("images", () => {
     });
 
     expect(access).toHaveBeenCalledWith(
-      "visual-regression/baseline/StoryKind-NameA.png",
+      "visual-regression/baseline/iPhone 15/StoryKind-NameA.png",
     );
     expect(rename).not.toHaveBeenCalled();
 
@@ -88,7 +122,7 @@ describe("images", () => {
     });
 
     expect(writeFile).toHaveBeenCalledWith(
-      "visual-regression/diff/StoryKind-NameA.png",
+      "visual-regression/diff/iPhone 15/StoryKind-NameA.png",
       undefined,
     );
   });

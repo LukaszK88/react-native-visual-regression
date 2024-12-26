@@ -1,4 +1,3 @@
-// @ts-expect-error expected
 import arg from "arg";
 
 const input = arg({

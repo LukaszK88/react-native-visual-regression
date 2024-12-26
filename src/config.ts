@@ -20,5 +20,5 @@ export const appId = config.appId;
 export const storiesDirectories = config.storiesDirectories;
 
 export const devices = devicesFilter
-  ? config.devices.filter((device) => devicesFilter.includes(device.name))
+  ? config.devices.filter((device) => devicesFilter?.includes(device.name))
   : config.devices;

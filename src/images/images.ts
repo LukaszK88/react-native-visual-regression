@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 
-import { generateMarkdownReport, TestResults } from "../report";
+import { generateMarkdownReport, TestResults } from "@/report";
 import { join } from "path";
 import { PNG } from "pngjs";
 import { logBlue, logGreen, logRed } from "@/console";
@@ -40,7 +40,7 @@ const checkIfImageHasBaseline = async (
 
 export const processImages = async () => {
   const { stories } = vrStore.getState();
-  if (stories.length === 0) {
+  if (!stories.length) {
     logBlue("No images provided to process.");
     return;
   }
