@@ -9,6 +9,7 @@ import { remote } from "webdriverio";
 import fs from "fs";
 import { spawn } from "child_process";
 import { logRed } from "@/console";
+import { SingleBar, Presets } from "cli-progress";
 
 type Config = Parameters<typeof remote>[0];
 
@@ -71,7 +72,11 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
   };
 };
 
-const processStoriesSequentially = async (device: Device, stories: Story[]) => {
+const processStoriesSequentially = async (
+  device: Device,
+  stories: Story[],
+  bar: SingleBar,
+) => {
   for (const story of stories) {
     const { driver, element } = await getDriverForPlatform(device, story);
 
@@ -88,7 +93,7 @@ const processStoriesSequentially = async (device: Device, stories: Story[]) => {
     ensureDirectoryExistence(currentPathForDevice);
 
     fs.writeFileSync(currentPathForDevice, screenshot, "base64");
-
+    bar.increment();
     await driver.deleteSession();
   }
 };
@@ -101,15 +106,29 @@ export const captureScreenshots = async () => {
     shell: true,
   });
 
+  const bar = new SingleBar(
+    {
+      format:
+        "\x1b[32mProcessing |{bar}| {percentage}%\x1b[0m | {value}/{total} | ETA: {eta}s",
+      barCompleteChar: "\u2588",
+      barIncompleteChar: "\u2591",
+      hideCursor: true,
+    },
+    Presets.rect,
+  );
+
+  bar.start(devices.length * stories.length, 0);
+
   try {
     await Promise.all(
       devices.map(async (device) => {
-        await processStoriesSequentially(device, stories);
+        await processStoriesSequentially(device, stories, bar);
       }),
     );
   } catch (e) {
     logRed("Capture failed", e);
   } finally {
     appiumProcess.kill("SIGINT");
+    bar.stop();
   }
 };
