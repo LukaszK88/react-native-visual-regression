@@ -1,6 +1,5 @@
 import fs from "fs";
 
-import { addLine, generateMarkdownReport } from "./report";
 import { formatStoryFileToKindWithNames } from "@/storybook/stories";
 import {
   approveChangesForScreenshots,
@@ -15,16 +14,14 @@ import {
 } from "@/paths";
 import { initStore } from "@/store";
 
-import { captureScreenshots } from "./driver";
-import { processImages } from "./images/images";
-
+import { captureScreenshots } from "@/driver";
+import { processImages } from "@/images/images";
+import { addLine } from "@/report";
 
 const runVisualRegression = async () => {
   initStore();
 
   await captureScreenshots();
-
-  generateMarkdownReport();
 
   await processImages();
 };

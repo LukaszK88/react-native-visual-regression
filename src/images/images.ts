@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 
-import { addRow } from "../report";
+import { generateMarkdownReport, TestResults } from "../report";
 import { join } from "path";
 import { PNG } from "pngjs";
 import { logBlue, logGreen, logRed } from "@/console";
@@ -20,7 +20,6 @@ import { Story } from "@/types";
 const checkIfImageHasBaseline = async (
   baselineImagePath: string,
   currentImagePath: string,
-  image: string,
 ) => {
   let hasBaseline = false;
 
@@ -34,13 +33,6 @@ const checkIfImageHasBaseline = async (
   // If no baseline, set the current image as baseline
   if (!hasBaseline) {
     await fs.rename(currentImagePath, baselineImagePath);
-    logGreen("Set", image, "as baseline");
-
-    addRow({
-      name: image,
-      result: "New",
-      baseline: baselineImagePath,
-    });
   }
 
   return hasBaseline;
@@ -59,10 +51,7 @@ export const processImages = async () => {
   const pixelmatch = (await import("pixelmatch")).default;
 
   // Track results per device
-  const deviceResults: Record<
-    string,
-    { passedTests: string[]; failedTests: string[]; newBaselines: string[] }
-  > = {};
+  const deviceResults: TestResults = {};
 
   for (const device of devices) {
     // Initialize results for this device
@@ -96,7 +85,6 @@ export const processImages = async () => {
       const hasBaseline = await checkIfImageHasBaseline(
         baselineImagePath,
         currentImagePath,
-        image,
       );
 
       // If no baseline, set the current image as baseline
@@ -135,14 +123,6 @@ export const processImages = async () => {
         } else {
           deviceResults[device.name].passedTests.push(story.fullName);
         }
-
-        addRow({
-          name: image,
-          result: pixelDiff > 0 ? `❌` : `✅`,
-          baseline: baselineImagePath,
-          current: currentImagePath,
-          diff: diffImagePath,
-        });
       } catch (e) {
         const error = (e as unknown as Error).message;
 
@@ -153,13 +133,6 @@ export const processImages = async () => {
           );
 
           deviceResults[device.name].failedTests.push(story.fullName);
-
-          addRow({
-            name: image,
-            result: `Image sizes do not match. ❌`,
-            baseline: baselineImagePath,
-            current: currentImagePath,
-          });
 
           continue; // Skip further processing for this image
         }
@@ -199,6 +172,8 @@ export const processImages = async () => {
     console.log("");
     console.log("");
   }
+
+  await generateMarkdownReport(deviceResults);
 };
 
 const deleteObsoleteImages = async (stories: Story[], deviceName: string) => {
