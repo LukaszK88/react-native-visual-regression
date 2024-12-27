@@ -5,7 +5,8 @@ const input = arg({
   "--approve": Boolean,
   "--file": String,
   "--story": String, // kind-name
-  "--device": [String], // kind-name
+  "--device": [String],
+  "--migrateToV2": Boolean,
   // Aliases
   "-a": "--approve",
   "-f": "--file",
@@ -17,5 +18,6 @@ export const isApproveChanges = input["--approve"];
 export const fileFilter = input["--file"];
 export const storyFilter = input["--story"];
 export const devicesFilter = input["--device"];
+export const migrateToV2 = input["--migrateToV2"];
 
 export const isFilterApplied = fileFilter || storyFilter || devicesFilter;

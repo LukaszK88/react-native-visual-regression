@@ -5,7 +5,7 @@ import {
   approveChangesForScreenshots,
 } from "@/utils/utils";
 import { logGreen } from "@/console";
-import { isApproveChanges, fileFilter, storyFilter } from "@/args";
+import { isApproveChanges, fileFilter, storyFilter, migrateToV2 } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
@@ -15,8 +15,14 @@ import { initStore } from "@/store";
 import { captureScreenshots } from "@/driver";
 import { processImages } from "@/images/images";
 import { addLine } from "@/report";
+import { migrate, runV2Migration } from "./utils/migration";
 
 const runVisualRegression = async () => {
+  if (migrateToV2) {
+    runV2Migration();
+    return;
+  }
+
   initStore();
 
   await captureScreenshots();
