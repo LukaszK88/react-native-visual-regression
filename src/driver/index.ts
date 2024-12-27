@@ -120,6 +120,7 @@ export const captureScreenshots = async () => {
   bar.start(devices.length * stories.length, 0);
 
   try {
+
     await Promise.all(
       devices.map(async (device) => {
         await processStoriesSequentially(device, stories, bar);

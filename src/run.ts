@@ -1,9 +1,7 @@
 import fs from "fs";
 
 import { formatStoryFileToKindWithNames } from "@/storybook/stories";
-import {
-  approveChangesForScreenshots,
-} from "@/utils/utils";
+import { approveChangesForScreenshots } from "@/utils/utils";
 import { logGreen } from "@/console";
 import { isApproveChanges, fileFilter, storyFilter, migrateToV2 } from "@/args";
 import {
@@ -15,7 +13,7 @@ import { initStore } from "@/store";
 import { captureScreenshots } from "@/driver";
 import { processImages } from "@/images/images";
 import { addLine } from "@/report";
-import { migrate, runV2Migration } from "./utils/migration";
+import { runV2Migration } from "./utils/migration";
 
 const runVisualRegression = async () => {
   if (migrateToV2) {
