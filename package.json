@@ -1,6 +1,6 @@
 {
   "name": "@powala/react-native-visual-regression",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "Visual Regression for React Native using Storybook",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -43,8 +43,6 @@
     "@types/node": "^22.5.0",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
-    "appium-uiautomator2-driver": "^3.9.5",
-    "appium-xcuitest-driver": "^7.35.0",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -59,6 +57,8 @@
   },
   "dependencies": {
     "appium": "^2.13.1",
+    "appium-uiautomator2-driver": "^3.9.5",
+    "appium-xcuitest-driver": "^7.35.0",
     "arg": "^5.0.2",
     "cli-progress": "^3.12.0",
     "pixelmatch": "^6.0.0",
