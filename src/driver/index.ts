@@ -7,7 +7,7 @@ import { toKebabCase } from "@/utils/utils";
 import { join } from "path";
 import { remote } from "webdriverio";
 import fs from "fs";
-import { spawn } from "child_process";
+import { exec, spawn } from "child_process";
 import { logRed } from "@/console";
 import { SingleBar, Presets } from "cli-progress";
 
@@ -98,9 +98,38 @@ const processStoriesSequentially = async (
   }
 };
 
+const prepareDrivers = async () => {
+  await new Promise((resolve) => {
+    exec(
+      "npx appium driver install uiautomator2",
+      null,
+      (error, stdout, stderr) => {
+        if (error) {
+          resolve(`Command failed: ${stderr || error.message}`);
+          return;
+        }
+        resolve(stdout);
+      },
+    );
+  });
+  await new Promise((resolve) => {
+    exec(
+      "npx appium driver install xcuitest",
+      null,
+      (error, stdout, stderr) => {
+        if (error) {
+          resolve(`Command failed: ${stderr || error.message}`);
+          return;
+        }
+        resolve(stdout);
+      },
+    );
+  });
+};
+
 export const captureScreenshots = async () => {
   const { stories } = vrStore.getState();
-
+  await prepareDrivers();
   const appiumProcess = spawn("npx", ["appium"], {
     stdio: "pipe",
     shell: true,
@@ -120,7 +149,6 @@ export const captureScreenshots = async () => {
   bar.start(devices.length * stories.length, 0);
 
   try {
-
     await Promise.all(
       devices.map(async (device) => {
         await processStoriesSequentially(device, stories, bar);
