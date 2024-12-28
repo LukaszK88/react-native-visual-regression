@@ -41,6 +41,9 @@ module.exports = {
     },
   ],
   appId: 'com.anonymous.VisualRegression', // appId of the app
+  android: {
+    activity: ".MainActivity",
+  },
   storiesDirectories: [ // Directories where the stories are located
     './example/.storybook'
   ]
@@ -93,6 +96,7 @@ npx rn-vr -a
 | --file \| -f   | undefined | -f .storybook/stories/Button/Button.stories.tsx      | Filename to run visual regression on                 |
 | --story \| -s  | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name                  |
 | --device \| -d  | undefined | -d "Pixel 8" -d "iPhone 15" | Run only on specified devices        |
+| --migrateToV2  | undefined | --migrateToV2 | Migrate baseline directory to V2 structure        |
 
 ### Prerequisites
 
@@ -100,3 +104,22 @@ npx rn-vr -a
 - For best results run the app in Release mode, otherwsie bundler will slow down the run and might produce inconsistencies.
 - The app can launch in Storybook mode, preferably without a UI, so you can capture only the screen. See the `example` directory for more details.
 - Story files should end with `*.stories.tsx`.
+
+
+### Migration from v1 to v2
+
+Run following to migrate `baseline` directory to new folder structure which is now split by devices.
+
+```
+npx rn-vr --migrateToV2
+```
+
+Add android app activity to to the `rn-vr.config.js` config
+
+```
+...
+android: {
+  activity: ".MainActivity",
+},
+...
+```

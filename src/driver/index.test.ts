@@ -2,6 +2,7 @@ import { vrStore } from "@/store";
 import { captureScreenshots } from ".";
 import { remote } from "webdriverio";
 import { writeFileSync } from "fs";
+import { ChildProcess, exec } from "child_process";
 
 jest.mock("@/store", () => ({
   vrStore: {
@@ -13,6 +14,7 @@ jest.mock("child_process", () => ({
   spawn: () => ({
     kill: jest.fn(),
   }),
+  exec: jest.fn((cmd, options, callback) => callback()),
 }));
 
 const mockTakeScreenshot = jest.fn();
@@ -34,6 +36,9 @@ jest.mock("@/config", () => ({
     { platform: "ios", name: "iPhone 15" },
     { platform: "android", name: "Pixel_8_API_34" },
   ],
+  androidConfig: {
+    activity: ".MainActivity"
+  }
 }));
 
 describe("index", () => {

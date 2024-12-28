@@ -1,4 +1,4 @@
-import { appId, devices } from "@/config";
+import { androidConfig, appId, devices } from "@/config";
 import { VISUAL_REGRESSION_CURRENT_DIR } from "@/paths";
 import { vrStore } from "@/store";
 import { Device, Story } from "@/types";
@@ -28,7 +28,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
         "appium:automationName": "UiAutomator2",
         "appium:deviceName": device.name,
         "appium:appPackage": appId,
-        "appium:appActivity": ".MainActivity",
+        "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments": `--es kind ${story.kind} --es name ${story.name.replace(/([A-Z])/g, " $1").trim()}`,
       },
@@ -130,6 +130,7 @@ const prepareDrivers = async () => {
 export const captureScreenshots = async () => {
   const { stories } = vrStore.getState();
   await prepareDrivers();
+
   const appiumProcess = spawn("npx", ["appium"], {
     stdio: "pipe",
     shell: true,
