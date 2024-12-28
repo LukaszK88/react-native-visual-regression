@@ -10,5 +10,8 @@ module.exports = {
     },
   ],
   appId: "com.anonymous.VisualRegression",
+  android: {
+    activity: ".MainActivity",
+  },
   storiesDirectories: ["./example/.storybook"],
 };

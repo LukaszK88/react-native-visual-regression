@@ -2,7 +2,6 @@ import { vrStore } from "@/store";
 import { captureScreenshots } from ".";
 import { remote } from "webdriverio";
 import { writeFileSync } from "fs";
-import { ChildProcess, exec } from "child_process";
 
 jest.mock("@/store", () => ({
   vrStore: {

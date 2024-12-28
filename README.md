@@ -1,5 +1,6 @@
 ## react-native-visual-regression
 
+![Demo](demo.gif)
 
 
 This package orchestrates several tools to provide a flexible visual regression solution for React Native (RN).
