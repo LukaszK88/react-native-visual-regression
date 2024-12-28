@@ -1,61 +1,49 @@
 import fs from "fs";
 
-import { generateMaestroFlow, runMaestroFlow } from "@/maestro/maestro";
-import { processImages } from "@/images/images";
-import { addLine, generateMarkdownReport } from "./report";
-import {
-  formatStoryFileToKindWithNames,
-  getVRStories,
-} from "@/storybook/stories";
-import {
-  approveChangesForScreenshots,
-  buildScreenshotName,
-} from "@/utils/utils";
+import { formatStoryFileToKindWithNames } from "@/storybook/stories";
+import { approveChangesForScreenshots } from "@/utils/utils";
 import { logGreen } from "@/console";
-import { getDeviceIdByName } from "@/utils/device";
-import { verifyMaestroInstall } from "@/maestro/installation";
-import { devices } from "@/config";
-import { isApproveChanges, fileFilter, storyFilter } from "@/args";
+import { isApproveChanges, fileFilter, storyFilter, migrateToV2 } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
 } from "@/paths";
+import { initStore } from "@/store";
+
+import { captureScreenshots } from "@/driver";
+import { processImages } from "@/images/images";
+import { addLine } from "@/report";
+import { runV2Migration } from "./utils/migration";
 
 const runVisualRegression = async () => {
-  const kindWithNames = getVRStories();
-  verifyMaestroInstall();
-  generateMarkdownReport();
-
-  for (const device of devices) {
-    const deviceId = getDeviceIdByName(device);
-
-    const { imageNames } = generateMaestroFlow(kindWithNames, device.name);
-
-    await runMaestroFlow(deviceId);
-
-    await processImages(imageNames, device.name);
+  if (migrateToV2) {
+    runV2Migration();
+    return;
   }
+
+  initStore();
+
+  await captureScreenshots();
+
+  await processImages();
 };
 
 const handleApproveChanges = () => {
   if (fileFilter) {
     const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
 
-    const screenshotNames: string[] = [];
     const kind = Object.keys(kindWithNames)[0];
-    devices.forEach((device) => {
-      kindWithNames[kind].forEach((name) => {
-        screenshotNames.push(buildScreenshotName(device.name, kind, name));
-      });
-    });
 
-    approveChangesForScreenshots(screenshotNames);
+    const screenshots = kindWithNames[kind].map(
+      (name) => `${kind}-${name}.png`,
+    );
+
+    approveChangesForScreenshots(screenshots);
     return;
   }
 
   if (storyFilter) {
-    const screenshotNames = devices.map((d) => `${d.name}-${storyFilter}.png`);
-    approveChangesForScreenshots(screenshotNames);
+    approveChangesForScreenshots([`${storyFilter}.png`]);
     return;
   }
 

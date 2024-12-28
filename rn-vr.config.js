@@ -2,7 +2,7 @@ module.exports = {
   devices: [
     {
       platform: "android",
-      name: "Pixel_8_API_34",
+      name: "Pixel_8_API_35",
     },
     {
       platform: "ios",

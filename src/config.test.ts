@@ -27,7 +27,7 @@ describe("config", () => {
     const { devices } = require("./config");
 
     expect(devices).toEqual([
-      { name: "Pixel_8_API_34", platform: "android" },
+      { name: "Pixel_8_API_35", platform: "android" },
       { name: "iPhone 15", platform: "ios" },
     ]);
   });

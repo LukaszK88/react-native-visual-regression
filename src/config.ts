@@ -9,16 +9,22 @@ function getRootConfigPath() {
 
 const configPath = getRootConfigPath();
 
+interface AndroidConfig {
+  activity: string;
+}
+
 // eslint-disable-next-line  @typescript-eslint/no-require-imports
 export const config = require(configPath) as {
   devices: Device[];
   appId: string;
+  android: AndroidConfig;
   storiesDirectories: string[];
 };
 
 export const appId = config.appId;
 export const storiesDirectories = config.storiesDirectories;
+export const androidConfig = config.android;
 
 export const devices = devicesFilter
-  ? config.devices.filter((device) => devicesFilter.includes(device.name))
+  ? config.devices.filter((device) => devicesFilter?.includes(device.name))
   : config.devices;
