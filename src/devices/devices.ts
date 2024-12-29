@@ -45,7 +45,6 @@ async function waitForEmulator() {
     let deviceReady = false;
 
     while (!deviceReady) {
-      // Check the status of connected devices
       const { stdout } = await execAsync("adb devices");
       const devices = stdout
         .split("\n")
@@ -55,7 +54,6 @@ async function waitForEmulator() {
         logBlue("Emulator is offline. Waiting...");
       } else if (devices.some((line) => line.includes("device"))) {
         logBlue("Emulator is online. Checking boot status...");
-        // Check if the device has completed booting
         const { stdout: bootStatus } = await execAsync(
           "adb shell getprop sys.boot_completed",
         );
@@ -68,7 +66,6 @@ async function waitForEmulator() {
         logBlue("No emulator found. Waiting...");
       }
 
-      // Wait 2 seconds before retrying
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   } catch (error) {
@@ -151,7 +148,6 @@ async function waitForSimulator(udid: string) {
       logRed("Simulator is not ready yet. Retrying...", error);
     }
 
-    // Wait 2 seconds before checking again
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
