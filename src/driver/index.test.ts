@@ -2,6 +2,7 @@ import { vrStore } from "@/store";
 import { captureScreenshots } from ".";
 import { remote } from "webdriverio";
 import { writeFileSync } from "fs";
+import { ChildProcess, exec } from "child_process";
 
 jest.mock("@/store", () => ({
   vrStore: {
@@ -13,7 +14,7 @@ jest.mock("child_process", () => ({
   spawn: () => ({
     kill: jest.fn(),
   }),
-  exec: jest.fn((cmd, options, callback) => callback()),
+  exec: jest.fn(),
 }));
 
 const mockTakeScreenshot = jest.fn();
@@ -36,12 +37,18 @@ jest.mock("@/config", () => ({
     { platform: "android", name: "Pixel_8_API_34" },
   ],
   androidConfig: {
-    activity: ".MainActivity"
-  }
+    activity: ".MainActivity",
+  },
 }));
 
 describe("index", () => {
   it("should run pararell driver run for devices", async () => {
+    jest
+      .mocked(exec)
+      .mockImplementation(
+        (cmd, options, callback) =>
+          callback?.(null, "stdout", "stderr") as unknown as ChildProcess,
+      );
     jest.mocked(vrStore.getState).mockReturnValue({
       stories: [
         {
@@ -143,5 +150,41 @@ describe("index", () => {
       undefined,
       "base64",
     );
+  });
+
+  it("should handle drivers set up failure", async () => {
+    jest
+      .mocked(exec)
+      .mockImplementation(
+        (cmd, options, callback) =>
+          callback?.(
+            new Error("ups"),
+            "stdout",
+            "stderr",
+          ) as unknown as ChildProcess,
+      );
+    await captureScreenshots();
+
+    expect(remote).toHaveBeenCalledTimes(4);
+    expect(mockTakeScreenshot).toHaveBeenCalledTimes(4);
+  });
+
+  it("should hoist story processing failure", async () => {
+    jest
+      .mocked(exec)
+      .mockImplementation(
+        (cmd, options, callback) =>
+          callback?.(null, "stdout", "stderr") as unknown as ChildProcess,
+      );
+    mockTakeScreenshot.mockRejectedValue(new Error("ups"));
+
+    try {
+      await captureScreenshots();
+    } catch (e) {
+      expect(remote).toHaveBeenCalledTimes(2);
+      expect(mockTakeScreenshot).toHaveBeenCalledTimes(2);
+
+      expect(e).toEqual(new Error("test run failed"));
+    }
   });
 });
