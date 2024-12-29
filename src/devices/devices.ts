@@ -1,6 +1,5 @@
 import { devices } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
-import { Device } from "@/types";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
 
@@ -16,13 +15,13 @@ async function isEmulatorRunning(): Promise<boolean> {
   }
 }
 
-async function startEmulator(device: Device) {
+async function startEmulator(deviceName: string) {
   try {
-    logBlue(device.name, "Starting emulator");
+    logBlue(deviceName, "Starting emulator");
 
     const emulatorProcess = spawn(
       "emulator",
-      ["-avd", device.name, "-no-snapshot-load"],
+      ["-avd", deviceName, "-no-snapshot-load"],
       {
         detached: true,
         stdio: "ignore",
@@ -31,18 +30,17 @@ async function startEmulator(device: Device) {
 
     emulatorProcess.unref();
 
-    logBlue(device.name, "Emulator started. Waiting for the device to boot...");
+    logBlue(deviceName, "Emulator started. Waiting for the device to boot...");
 
-    await waitForDevice();
+    await waitForEmulator();
 
-    logGreen(device.name, "Emulator is ready.");
+    logGreen(deviceName, "Emulator is ready.");
   } catch (error) {
-    logRed(device.name, "Error starting emulator:", error);
+    logRed(deviceName, "Error starting emulator:", error);
   }
 }
 
-// Function to wait for the emulator to boot
-async function waitForDevice() {
+async function waitForEmulator() {
   try {
     let deviceReady = false;
 
@@ -79,17 +77,119 @@ async function waitForDevice() {
   }
 }
 
+const warmUpEmulator = async (deviceName: string) => {
+  const running = await isEmulatorRunning();
+  if (running) {
+    logBlue(deviceName, "is already running.");
+  } else {
+    await startEmulator(deviceName);
+  }
+};
+
+async function listSimulators() {
+  try {
+    const { stdout } = await execAsync("xcrun simctl list devices");
+    return stdout;
+  } catch (error) {
+    logRed("Error listing simulators:", error);
+    throw error;
+  }
+}
+
+async function startSimulator(simulatorName: string) {
+  try {
+    logBlue(`Finding simulator: ${simulatorName}`);
+
+    // List available simulators
+    const simulatorsOutput = await listSimulators();
+    const simulators = parseSimulators(simulatorsOutput);
+
+    const simulator = simulators.find((sim) => sim.name === simulatorName);
+    if (!simulator) {
+      throw new Error(`Simulator "${simulatorName}" not found or unavailable.`);
+    }
+
+    if (simulator.status === "Booted") {
+      logBlue(simulatorName, "Already Booted");
+
+      return;
+    }
+
+    logBlue(`Booting simulator: ${simulator.name} (${simulator.udid})`);
+
+    // xcrun simctl boot "$simulator_name" 2>/dev/null
+    // Boot the simulator
+    await execAsync(`xcrun simctl boot ${simulator.udid}`);
+
+    logBlue(simulator.name, "started. Waiting for it to be ready...");
+
+    await execAsync("open -a Simulator");
+
+    // Wait for the simulator to be ready
+    await waitForSimulator(simulator.udid);
+
+    logBlue(`Simulator "${simulator.name}" is ready.`);
+  } catch (error) {
+    console.error("Error starting simulator:", error);
+    throw error;
+  }
+}
+
+async function waitForSimulator(udid: string) {
+  let simulatorReady = false;
+
+  while (!simulatorReady) {
+    try {
+      const { stdout } = await execAsync(`xcrun simctl bootstatus ${udid} -b`);
+
+      if (stdout.includes("Finished")) {
+        simulatorReady = true;
+      } else {
+        logBlue("Simulator is still booting...");
+      }
+    } catch (error) {
+      logRed("Simulator is not ready yet. Retrying...", error);
+    }
+
+    // Wait 2 seconds before checking again
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  logBlue("Simulator is ready!");
+}
+
+function parseSimulators(output: string) {
+  const simulators: {
+    name: string;
+    udid: string;
+    status: "Booted" | "Shutdown";
+  }[] = [];
+  const lines = output.split("\n");
+
+  lines.forEach((line) => {
+    const deviceMatch = line
+      .trim()
+      .match(/^\s*(.+?)\s+\(([A-F0-9-]+)\)\s+\((\w+)\)$/);
+
+    if (deviceMatch) {
+      const name = deviceMatch[1].trim();
+      const udid = deviceMatch[2].trim();
+      const status = deviceMatch[3].trim() as "Booted" | "Shutdown";
+      simulators.push({ name, udid, status });
+    }
+  });
+
+  return simulators;
+}
+
 export const warmUpDevices = async () => {
   await Promise.all(
     devices.map(async (device) => {
       if (device.platform === "android") {
-        const running = await isEmulatorRunning();
-        if (running) {
-          logBlue(device.name, "is already running.");
-        } else {
-          await startEmulator(device);
-        }
+        return warmUpEmulator(device.name);
       }
+
+      return startSimulator(device.name);
     }),
   );
 };
