@@ -8,6 +8,7 @@ const execAsync = promisify(exec);
 async function isEmulatorRunning(): Promise<boolean> {
   try {
     const { stdout } = await execAsync(`adb devices`);
+
     return stdout.includes("emulator-");
   } catch (error) {
     console.error("Error checking emulator status:", error);
@@ -97,7 +98,6 @@ async function startSimulator(simulatorName: string) {
   try {
     logBlue(`Finding simulator: ${simulatorName}`);
 
-    // List available simulators
     const simulatorsOutput = await listSimulators();
     const simulators = parseSimulators(simulatorsOutput);
 
@@ -114,20 +114,17 @@ async function startSimulator(simulatorName: string) {
 
     logBlue(`Booting simulator: ${simulator.name} (${simulator.udid})`);
 
-    // xcrun simctl boot "$simulator_name" 2>/dev/null
-    // Boot the simulator
     await execAsync(`xcrun simctl boot ${simulator.udid}`);
 
     logBlue(simulator.name, "started. Waiting for it to be ready...");
 
     await execAsync("open -a Simulator");
 
-    // Wait for the simulator to be ready
     await waitForSimulator(simulator.udid);
 
     logBlue(`Simulator "${simulator.name}" is ready.`);
   } catch (error) {
-    console.error("Error starting simulator:", error);
+    logRed("Error starting simulator:", error);
     throw error;
   }
 }
