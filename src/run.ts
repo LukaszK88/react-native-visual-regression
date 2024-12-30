@@ -14,12 +14,15 @@ import { captureScreenshots } from "@/driver";
 import { processImages } from "@/images/images";
 import { addLine } from "@/report";
 import { runV2Migration } from "./utils/migration";
+import { warmUpDevices } from "./devices/devices";
 
 const runVisualRegression = async () => {
   if (migrateToV2) {
     runV2Migration();
     return;
   }
+
+  await warmUpDevices();
 
   initStore();
 

@@ -1,3 +1,5 @@
+import { isVerbose } from "@/args";
+
 // ANSI codes for colors
 export const colors = {
   green: "\x1b[32m",
@@ -6,11 +8,18 @@ export const colors = {
   reset: "\x1b[0m",
 };
 
-const log = (message: string | string[], color: keyof typeof colors) => {
+const log = (
+  message: string | unknown | (string | unknown)[],
+  color: keyof typeof colors,
+) => {
   const output = Array.isArray(message) ? message.join(" ") : message;
   console.log(`${colors[color]}${output}${colors.reset}`);
 };
 
 export const logGreen = (...message: string[]) => log(message, "green");
-export const logBlue = (...message: string[]) => log(message, "blue");
-export const logRed = (...message: string[]) => log(message, "red");
+export const logBlue = (...message: string[]) => {
+  if (isVerbose) {
+    return log(message, "blue");
+  }
+};
+export const logRed = (...message: (string | unknown)[]) => log(message, "red");
