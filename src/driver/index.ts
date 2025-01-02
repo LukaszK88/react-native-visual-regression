@@ -30,7 +30,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
         "appium:appPackage": appId,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
-        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name ${story.name.replace(/([A-Z])/g, " $1").trim()}`,
+        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${story.name.replace(/([A-Z])/g, " $1").trim()}"`,
       },
     });
 
@@ -80,7 +80,7 @@ const processStoriesSequentially = async (
   for (const story of stories) {
     const { driver, element } = await getDriverForPlatform(device, story);
 
-    await element.waitForDisplayed({ timeout: 5000 });
+    await element.waitForDisplayed({ timeout: 7000 });
 
     const screenshot = await driver.takeScreenshot();
 

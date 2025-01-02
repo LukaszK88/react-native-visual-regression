@@ -105,7 +105,7 @@ describe("index", () => {
         "appium:deviceName": "Pixel_8_API_34",
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments":
-          "--es kind StoryKind --es name Name A",
+          '--es kind StoryKind --es name "Name A"',
         platformName: "Android",
       },
       hostname: "localhost",
@@ -120,7 +120,7 @@ describe("index", () => {
         "appium:deviceName": "Pixel_8_API_34",
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments":
-          "--es kind StoryKindB --es name Name B",
+          '--es kind StoryKindB --es name "Name B"',
         platformName: "Android",
       },
       hostname: "localhost",

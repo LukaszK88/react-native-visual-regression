@@ -128,7 +128,7 @@ export const processImages = async () => {
 
         // Handle image dimension mismatch
         if (error === "Image sizes do not match.") {
-          console.log(
+          logRed(
             `Image sizes do not match for ${image}. Baseline: ${baselineImagePath}, Current: ${currentImagePath}`,
           );
 
