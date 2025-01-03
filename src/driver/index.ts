@@ -20,6 +20,7 @@ const driverConfig: Partial<Config> = {
 };
 
 const getDriverForPlatform = async (device: Device, story: Story) => {
+  const name = story.name.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
   if (device.platform === "android") {
     const driver = await remote({
       ...driverConfig,
@@ -30,7 +31,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
         "appium:appPackage": appId,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
-        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${story.name.replace(/([A-Z])/g, " $1").trim()}"`,
+        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}"`,
       },
     });
 
@@ -52,12 +53,7 @@ const getDriverForPlatform = async (device: Device, story: Story) => {
       "appium:platformVersion": "17.5",
       "appium:bundleId": appId,
       "appium:processArguments": {
-        args: [
-          "-kind",
-          story.kind,
-          "-name",
-          story.name.replace(/([A-Z])/g, " $1").trim(),
-        ],
+        args: ["-kind", story.kind, "-name", name],
       },
     },
   });
@@ -80,6 +76,7 @@ const processStoriesSequentially = async (
   for (const story of stories) {
     const { driver, element } = await getDriverForPlatform(device, story);
 
+    // TODO: fallback or retry mechanism.
     await element.waitForDisplayed({ timeout: 7000 });
 
     const screenshot = await driver.takeScreenshot();

@@ -49,6 +49,7 @@ describe("getVRStories", () => {
 
     expect(getVRStories()).toEqual({
       Component: ["Basic", "SecondName"],
+      ComponentC: ["Basic", "EUR"],
       ComponentB: ["Basic", "Second", "Third", "Fourth"],
       SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
     });

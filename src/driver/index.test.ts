@@ -18,11 +18,10 @@ jest.mock("child_process", () => ({
 }));
 
 const mockTakeScreenshot = jest.fn();
+const mock$ = jest.fn();
 jest.mock("webdriverio", () => ({
   remote: jest.fn(() => ({
-    $: () => ({
-      waitForDisplayed: jest.fn(),
-    }),
+    $: mock$,
     takeScreenshot: mockTakeScreenshot,
     deleteSession: jest.fn(),
   })),
@@ -42,6 +41,12 @@ jest.mock("@/config", () => ({
 }));
 
 describe("index", () => {
+  beforeEach(() => {
+    mock$.mockReturnValue({
+      waitForDisplayed: jest.fn(),
+    });
+  });
+
   it("should run pararell driver run for devices", async () => {
     jest
       .mocked(exec)
@@ -186,5 +191,49 @@ describe("index", () => {
 
       expect(e).toEqual(new Error("test run failed"));
     }
+  });
+
+  it("should handle caps only story name", async () => {
+    jest
+      .mocked(exec)
+      .mockImplementation(
+        (cmd, options, callback) =>
+          callback?.(null, "stdout", "stderr") as unknown as ChildProcess,
+      );
+    jest.mocked(vrStore.getState).mockReturnValue({
+      stories: [
+        {
+          fullName: "StoryKind-EUR",
+          kind: "StoryKind",
+          name: "EUR",
+        },
+      ],
+    });
+    mockTakeScreenshot.mockResolvedValue("");
+
+    await captureScreenshots();
+
+    expect(remote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        capabilities: expect.objectContaining({
+          "appium:processArguments": expect.objectContaining({
+            args: ["-kind", "StoryKind", "-name", "EUR"],
+          }),
+        }),
+      }),
+    );
+    expect(remote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        capabilities: expect.objectContaining({
+          "appium:optionalIntentArguments":
+            '--es kind StoryKind --es name "EUR"',
+        }),
+      }),
+    );
+
+    expect(mock$).toHaveBeenCalledWith("~storykind--eur");
+    expect(mock$).toHaveBeenCalledWith(
+      'android=new UiSelector().resourceId("storykind--eur")',
+    );
   });
 });
