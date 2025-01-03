@@ -1,6 +1,5 @@
 /node_modules
 /dist
 /visual-regression
-VisualRegressionTestReport.md
-VisualRegressionTestReport.html
+VisualRegressionTestReport.*
 coverage

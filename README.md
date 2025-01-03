@@ -26,7 +26,7 @@ Add to your `.gitignore`
 ```
 visual-regression/current
 visual-regression/diff
-VisualRegressionTestReport.md
+VisualRegressionTestReport.*
 ```
 
 ### Usage
@@ -91,13 +91,14 @@ npx rn-vr -a
 
 ### Command Arguments
 
-| Argument       | Default   | Example                    | Notes                                                |
-| -------------- | --------- | -------------------------- | ---------------------------------------------------- |
-| --approve \| -a| undefined | -a                         | Approve base images with the current version         |
-| --file \| -f   | undefined | -f .storybook/stories/Button/Button.stories.tsx      | Filename to run visual regression on                 |
-| --story \| -s  | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name                  |
-| --device \| -d  | undefined | -d "Pixel 8" -d "iPhone 15" | Run only on specified devices        |
-| --migrateToV2  | undefined | --migrateToV2 | Migrate baseline directory to V2 structure        |
+| Argument               | Default   | Example                                                            | Notes                                                |
+| --------------         | --------- | --------------------------                                         | ---------------------------------------------------- |
+| --approve \| -a        | undefined | -a                                                                 | Approve base images with the current version         |
+| --file \| -f           | undefined | -f .storybook/stories/Button/Button.stories.tsx                    | Filename to run visual regression on                 |
+| --story \| -s          | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name   |                                                      |
+| --device \| -d         | undefined | -d "Pixel 8" -d "iPhone 15" | Run only on specified devices        |                                                      |
+| --reportFormat \| -rf  | md        | --reportFormat "html" | Format of the generated report             |                                                      |
+| --migrateToV2          | undefined | --migrateToV2 | Migrate baseline directory to V2 structure         |                                                      |
 
 ### Prerequisites
 
