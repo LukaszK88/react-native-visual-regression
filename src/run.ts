@@ -12,9 +12,9 @@ import { initStore } from "@/store";
 
 import { captureScreenshots } from "@/driver";
 import { processImages } from "@/images/images";
-import { addLine } from "@/report";
 import { runV2Migration } from "./utils/migration";
 import { warmUpDevices } from "./devices/devices";
+import { addRuntime } from "./reports/report";
 
 const runVisualRegression = async () => {
   if (migrateToV2) {
@@ -69,5 +69,5 @@ export const main = async () => {
 
   console.info("Run took:", Math.floor(duration / 1000), "s");
 
-  addLine(`#### Run time - ${Math.floor(duration / 1000)}s`);
+  addRuntime(`Run time - ${Math.floor(duration / 1000)}s`);
 };

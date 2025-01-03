@@ -4,12 +4,8 @@ import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
   VISUAL_REGRESSION_DIFF_DIR,
-} from "./paths";
-
-export type TestResults = Record<
-  string,
-  { passedTests: string[]; failedTests: string[]; newBaselines: string[] }
->;
+} from "@/paths";
+import { TestResults } from "./types";
 
 // Helper function to render images in markdown
 const imageMd = (src?: string) =>

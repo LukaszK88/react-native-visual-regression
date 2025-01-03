@@ -1,6 +1,5 @@
 import fs from "fs/promises";
 
-import { generateMarkdownReport, TestResults } from "@/report";
 import { join } from "path";
 import { PNG } from "pngjs";
 import { logBlue, logGreen, logRed } from "@/console";
@@ -13,6 +12,8 @@ import {
 import { vrStore } from "@/store";
 import { devices } from "@/config";
 import { Story } from "@/types";
+import { TestResults } from "@/reports/types";
+import { generateReport } from "@/reports/report";
 
 /**
  * If current image does not have a baseline, set one.
@@ -180,7 +181,7 @@ export const processImages = async () => {
     console.log("");
   }
 
-  await generateMarkdownReport(deviceResults);
+  await generateReport(deviceResults);
 };
 
 const deleteObsoleteImages = async (stories: Story[], deviceName: string) => {

@@ -50,6 +50,7 @@ describe("images", () => {
     });
 
     jest.mocked(readdir).mockResolvedValue([]);
+    jest.mocked(access).mockResolvedValueOnce();
     jest.mocked(access).mockRejectedValue("does not exist");
 
     jest.mocked(vrStore.getState).mockReturnValue({
@@ -71,6 +72,9 @@ describe("images", () => {
       recursive: true,
     });
 
+    expect(access).toHaveBeenCalledWith(
+      "visual-regression/current/iPhone 15/StoryKind-NameA.png",
+    );
     expect(access).toHaveBeenCalledWith(
       "visual-regression/baseline/iPhone 15/StoryKind-NameA.png",
     );
