@@ -82,6 +82,13 @@ export const processImages = async () => {
         image,
       );
 
+      try {
+        await fs.access(currentImagePath);
+      } catch {
+        deviceResults[device.name].failedTests.push(story.fullName);
+        continue;
+      }
+
       const hasBaseline = await checkIfImageHasBaseline(
         baselineImagePath,
         currentImagePath,

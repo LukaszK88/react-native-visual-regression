@@ -17,7 +17,7 @@ const log = (
 };
 
 export const logGreen = (...message: string[]) => log(message, "green");
-export const logBlue = (...message: string[]) => {
+export const logBlue = (...message: (string | unknown)[]) => {
   if (isVerbose) {
     return log(message, "blue");
   }
