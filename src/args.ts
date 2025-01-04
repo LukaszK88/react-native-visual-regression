@@ -9,6 +9,7 @@ const input = arg({
   "--migrateToV2": Boolean,
   "--verbose": Boolean,
   "--reportFormat": String, // md | html
+  "--apkPath": String,
   // Aliases
   "-a": "--approve",
   "-f": "--file",
@@ -25,5 +26,6 @@ export const devicesFilter = input["--device"];
 export const migrateToV2 = input["--migrateToV2"];
 export const isVerbose = input["--verbose"];
 export const reportFormat = input["--reportFormat"] ?? "md";
+export const apkPath = input["--apkPath"];
 
 export const isFilterApplied = fileFilter || storyFilter || devicesFilter;

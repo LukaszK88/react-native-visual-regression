@@ -1,3 +1,5 @@
+import { apkPath } from "@/args";
+import { appId } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
 import { Device } from "@/types";
 import { exec, execSync, spawn } from "child_process";
@@ -186,6 +188,54 @@ function parseOutput(output: string) {
   return result;
 }
 
+const checkIfAppIsInstalled = async (emulatorId: string) => {
+  try {
+    const { stdout } = await execAsync(
+      `adb -s ${emulatorId} shell pm list packages | grep ${appId}`,
+    );
+
+    const isInstalled = stdout.includes(appId);
+
+    logBlue(emulatorId, "is app instaled:", isInstalled);
+
+    return isInstalled;
+  } catch (e) {
+    logBlue(emulatorId, "is app instaled:", false, e);
+
+    return false;
+  }
+};
+
+const installApp = async (emulatorId: string) => {
+  const { stdout, stderr } = await execAsync(
+    `adb -s ${emulatorId} install ${apkPath}`,
+  );
+
+  if (stdout) {
+    logGreen("App installed", stdout);
+  }
+
+  if (stderr) {
+    logRed("App failed to install", stderr);
+  }
+};
+
+const attemptAppInstall = async (emulatorId: string) => {
+  const isAppInstalled = await checkIfAppIsInstalled(emulatorId);
+
+  if (!isAppInstalled) {
+    if (!apkPath) {
+      logRed(
+        `App is not instaled on ${emulatorId}, install the app on the emulator or provide --apkPath as argument`,
+      );
+      return;
+    }
+    logBlue("Attempt install");
+
+    await installApp(emulatorId);
+  }
+};
+
 export const warmUpEmulator = async (device: Device) => {
   const doesEmulatorExist = await emulatorExists(device.name);
 
@@ -203,6 +253,13 @@ export const warmUpEmulator = async (device: Device) => {
     emulatorId = findEmulatorByAvdName(device.name);
   }
 
+  if (!emulatorId) {
+    logRed("Emulator does not exist");
+    return;
+  }
+
+  await attemptAppInstall(emulatorId);
+
   if (device.devices) {
     // one is already running
     const numOfDevices = Array(device.devices - 1).fill("");
@@ -213,11 +270,20 @@ export const warmUpEmulator = async (device: Device) => {
       const doesEmulatorExist = await emulatorExists(emulatorName);
 
       if (doesEmulatorExist) {
-        const emulatorId = findEmulatorByAvdName(emulatorName);
+        let emulatorId = findEmulatorByAvdName(emulatorName);
         if (!emulatorId) {
           logBlue(emulatorName, "is not runnig");
           await startEmulator(emulatorName);
+
+          emulatorId = findEmulatorByAvdName(device.name);
         }
+
+        if (!emulatorId) {
+          logRed("Emulator does not exist");
+          return;
+        }
+
+        await attemptAppInstall(emulatorId);
 
         continue;
       }
@@ -240,8 +306,15 @@ export const warmUpEmulator = async (device: Device) => {
 
       logBlue(emulatorName, "created");
       await startEmulator(emulatorName);
-    }
 
-    // TODO: install APK
+      const emulatorId = findEmulatorByAvdName(emulatorName);
+
+      if (!emulatorId) {
+        logRed("Emulator does not exist");
+        return;
+      }
+
+      await attemptAppInstall(emulatorId);
+    }
   }
 };
