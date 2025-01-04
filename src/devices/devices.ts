@@ -1,7 +1,10 @@
 import { devices } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
+import { Device } from "@/types";
+import { findEmulatorByAvdName } from "@/utils/device";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import { warmUpEmulator } from "./android";
 
 const execAsync = promisify(exec);
 
@@ -75,14 +78,6 @@ async function waitForEmulator() {
   }
 }
 
-const warmUpEmulator = async (deviceName: string) => {
-  const running = await isEmulatorRunning();
-  if (running) {
-    logBlue(deviceName, "is already running.");
-  } else {
-    await startEmulator(deviceName);
-  }
-};
 
 async function listSimulators() {
   try {
@@ -179,7 +174,7 @@ export const warmUpDevices = async () => {
   await Promise.all(
     devices.map(async (device) => {
       if (device.platform === "android") {
-        return warmUpEmulator(device.name);
+        return warmUpEmulator(device);
       }
 
       return startSimulator(device.name);

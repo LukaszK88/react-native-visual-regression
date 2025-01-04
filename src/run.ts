@@ -24,11 +24,11 @@ const runVisualRegression = async () => {
 
   await warmUpDevices();
 
-  initStore();
+  // initStore();
 
-  await captureScreenshots();
+  // await captureScreenshots();
 
-  await processImages();
+  // await processImages();
 };
 
 const handleApproveChanges = () => {
