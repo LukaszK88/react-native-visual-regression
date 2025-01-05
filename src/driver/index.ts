@@ -15,6 +15,7 @@ import { logBlue, logRed } from "@/console";
 import { SingleBar, Presets } from "cli-progress";
 import { splitArrayIntoParts } from "@/utils/array";
 import { findEmulatorByAvdName } from "@/devices/android";
+import { deviceStore } from "@/stores/deviceStore";
 
 type Config = Parameters<typeof remote>[0];
 
@@ -27,13 +28,9 @@ const driverConfig: Partial<Config> = {
 const getDriverForPlatform = async (
   device: Device,
   story: Story,
-  deviceIndex: number = 0,
+  deviceId: string,
 ) => {
   const name = story.name.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
-  const deviceName =
-    deviceIndex === 0 ? device.name : `${device.name}_${deviceIndex + 1}`;
-  const emulatorId = findEmulatorByAvdName(deviceName);
-  console.log({ deviceName, emulatorId });
 
   if (device.platform === "android") {
     const driver = await remote({
@@ -41,7 +38,7 @@ const getDriverForPlatform = async (
       capabilities: {
         platformName: "Android",
         "appium:automationName": "UiAutomator2",
-        "appium:udid": emulatorId,
+        "appium:udid": deviceId,
         "appium:appPackage": appId,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
@@ -110,25 +107,23 @@ const processStoriesSequentially = async (
   bar: SingleBar,
 ) => {
   const failedStories: Story[] = [];
-  const numberOfDevices = Array(device.devices ?? 1).fill("");
 
-  const groupedStoriesPerDevice = splitArrayIntoParts(
-    stories,
-    numberOfDevices.length,
-  );
+  const pararellDevices = deviceStore.getState().devices[device.name];
 
-  logBlue("Devices", numberOfDevices);
+  const numberOfDevices = pararellDevices.length;
+
+  const groupedStoriesPerDevice = splitArrayIntoParts(stories, numberOfDevices);
 
   await Promise.all(
-    numberOfDevices.map(async (_, index) => {
+    pararellDevices.map(async (pararellDevice, index) => {
       const storiesForDevice = groupedStoriesPerDevice[index];
-      logBlue("storiesForDevice", storiesForDevice.length);
+      logBlue("storiesForDevice", pararellDevice.id, storiesForDevice.length);
 
       for (const story of storiesForDevice) {
         const { driver, element } = await getDriverForPlatform(
           device,
           story,
-          index,
+          pararellDevice.id,
         );
 
         try {

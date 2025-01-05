@@ -1,6 +1,11 @@
 import { apkPath } from "@/args";
 import { appId } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
+import {
+  addBaseDevice,
+  addToBaseDevice,
+  deviceStore,
+} from "@/stores/deviceStore";
 import { Device } from "@/types";
 import { exec, execSync, spawn } from "child_process";
 import { promisify } from "util";
@@ -44,8 +49,6 @@ const androidVersionToApiMap: Record<string, number> = {
 };
 
 const execAsync = promisify(exec);
-// ANDROID_SDK_PATH="$HOME/Library/Android/sdk"
-// AVD_MANAGER="$ANDROID_SDK_PATH/cmdline-tools/latest/bin/avdmanager"
 
 export function findEmulatorByAvdName(targetAvdName: string) {
   const devicesOutput = execSync("adb devices", { encoding: "utf-8" });
@@ -260,6 +263,8 @@ export const warmUpEmulator = async (device: Device) => {
 
   await attemptAppInstall(emulatorId);
 
+  addBaseDevice({ name: device.name, id: emulatorId });
+
   if (device.devices) {
     // one is already running
     const numOfDevices = Array(device.devices - 1).fill("");
@@ -284,6 +289,10 @@ export const warmUpEmulator = async (device: Device) => {
         }
 
         await attemptAppInstall(emulatorId);
+        addToBaseDevice(device.name, {
+          name: emulatorName,
+          id: emulatorId,
+        });
 
         continue;
       }
@@ -315,6 +324,11 @@ export const warmUpEmulator = async (device: Device) => {
       }
 
       await attemptAppInstall(emulatorId);
+
+      addToBaseDevice(device.name, {
+        name: emulatorName,
+        id: emulatorId,
+      });
     }
   }
 };
