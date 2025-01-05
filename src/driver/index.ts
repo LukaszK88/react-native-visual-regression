@@ -14,7 +14,6 @@ import { exec, spawn } from "child_process";
 import { logBlue, logRed } from "@/console";
 import { SingleBar, Presets } from "cli-progress";
 import { splitArrayIntoParts } from "@/utils/array";
-import { findEmulatorByAvdName } from "@/devices/android";
 import { deviceStore } from "@/stores/deviceStore";
 
 type Config = Parameters<typeof remote>[0];
@@ -28,7 +27,7 @@ const driverConfig: Partial<Config> = {
 const getDriverForPlatform = async (
   device: Device,
   story: Story,
-  deviceId: string,
+  deviceId?: string,
 ) => {
   const name = story.name.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
 
@@ -54,13 +53,12 @@ const getDriverForPlatform = async (
       element,
     };
   }
-
   const driver = await remote({
     ...driverConfig,
     capabilities: {
       platformName: "iOS",
       "appium:automationName": "XCUITest",
-      "appium:deviceName": device.name,
+      "appium:udid": deviceId,
       "appium:platformVersion": "17.5",
       "appium:bundleId": appId,
       "appium:processArguments": {
@@ -117,7 +115,7 @@ const processStoriesSequentially = async (
   await Promise.all(
     pararellDevices.map(async (pararellDevice, index) => {
       const storiesForDevice = groupedStoriesPerDevice[index];
-      logBlue("storiesForDevice", pararellDevice.id, storiesForDevice.length);
+      logBlue("storiesForDevice", pararellDevice.name, storiesForDevice.length);
 
       for (const story of storiesForDevice) {
         const { driver, element } = await getDriverForPlatform(
@@ -127,6 +125,7 @@ const processStoriesSequentially = async (
         );
 
         try {
+          logBlue("Processing", story.fullName, ":", pararellDevice.name);
           await processStory(device.name, story.fullName, bar, element, driver);
         } catch (e) {
           logBlue(
@@ -144,10 +143,17 @@ const processStoriesSequentially = async (
     }),
   );
 
+  const pararellDevice = pararellDevices[0];
+
   for (const failedStory of failedStories) {
-    const { driver, element } = await getDriverForPlatform(device, failedStory);
+    const { driver, element } = await getDriverForPlatform(
+      device,
+      failedStory,
+      pararellDevice.id,
+    );
 
     try {
+      logBlue("Processing", failedStory.fullName, ":", pararellDevice.name);
       await processStory(
         device.name,
         failedStory.fullName,

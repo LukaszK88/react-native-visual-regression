@@ -1,10 +1,9 @@
-import { appId, devices } from "@/config";
+import { appId } from "@/config";
 import { logBlue, logRed } from "@/console";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { warmUpEmulator } from "./android";
 import { Device } from "@/types";
-import { addBaseDevice } from "@/stores/deviceStore";
+import { addBaseDevice, addToBaseDevice } from "@/stores/deviceStore";
 import { appPath } from "@/args";
 
 const execAsync = promisify(exec);
@@ -70,6 +69,95 @@ const installApp = async (uuid: string) => {
   }
 };
 
+const createSimulator = async (
+  name: string,
+  deviceType: string,
+  runtime: string,
+) => {
+  try {
+    const { stdout } = await execAsync(
+      `xcrun simctl create "${name}" "${deviceType}" "${runtime}"`,
+    );
+
+    if (stdout) {
+      return stdout.replace("\n", "");
+    }
+
+    throw new Error("Failed to create the simulator");
+  } catch (e) {
+    logRed(e);
+    throw new Error("Failed to create the simulator");
+  }
+};
+
+const handlePararellDevicesForBaseSimulator = async (
+  device: Device,
+  simulators: { name: string; udid: string; status: "Booted" | "Shutdown" }[],
+) => {
+  if (device.devices) {
+    const { stdout: deviceTypes } = await execAsync(
+      "xcrun simctl list devicetypes",
+    );
+    const { stdout: runtimes } = await execAsync("xcrun simctl list runtimes");
+
+    const deviceType = deviceTypes
+      .split("\n")
+      .find((deviceType) => deviceType.startsWith(`${device.name} (`))
+      ?.match(/\(([^)]+)\)/)?.[1];
+
+    const runtime = runtimes
+      .split("\n")[1]
+      .match(/com\.apple\.CoreSimulator\.SimRuntime\.iOS-[^\s)]+/g)?.[0];
+
+    // one is already running
+    const numOfDevices = Array(device.devices - 1).fill("");
+
+    if (!deviceType) {
+      return;
+    }
+
+    if (!runtime) {
+      return;
+    }
+
+    for (const [index] of numOfDevices.entries()) {
+      const simulatorName = `${device.name}_${index + 2}`;
+
+      const simulatorExists = simulators.find(
+        (sim) => sim.name === simulatorName,
+      );
+
+      let udid = simulatorExists?.udid;
+
+      if (!simulatorExists) {
+        logBlue(simulatorName, "Does not exist, attempt creation");
+
+        udid = await createSimulator(simulatorName, deviceType, runtime);
+      }
+
+      if (!udid) {
+        logRed("No udid");
+        continue;
+      }
+
+      if (simulatorExists?.status !== "Booted") {
+        await execAsync(`xcrun simctl boot ${udid}`);
+        await waitForSimulator(udid);
+      }
+
+      logBlue(`Simulator "${simulatorName}" is ready.`);
+
+      const isInstalled = await checkIfAppIsInstalled(udid);
+
+      if (!isInstalled) {
+        await installApp(udid);
+      }
+
+      addToBaseDevice(device.name, { name: simulatorName, id: udid });
+    }
+  }
+};
+
 export async function startSimulator(device: Device) {
   const simulatorName = device.name;
   try {
@@ -94,6 +182,8 @@ export async function startSimulator(device: Device) {
 
       addBaseDevice({ name: device.name, id: simulator.udid });
 
+      await handlePararellDevicesForBaseSimulator(device, simulators);
+
       return;
     }
 
@@ -117,17 +207,7 @@ export async function startSimulator(device: Device) {
 
     addBaseDevice({ name: device.name, id: simulator.udid });
 
-
-    if (device.devices) {
-        // one is already running
-        const numOfDevices = Array(device.devices - 1).fill("");
-    
-        for (const [index] of numOfDevices.entries()) {
-          const simulatorName = `${device.name}_${index + 2}`;
-        }
-    }
-
-    // handle other devices
+    await handlePararellDevicesForBaseSimulator(device, simulators);
   } catch (error) {
     logRed("Error starting simulator:", error);
     throw error;
