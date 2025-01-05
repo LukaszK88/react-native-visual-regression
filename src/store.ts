@@ -11,7 +11,6 @@ export const vrStore = createStore<State>(() => ({
   stories: [],
 }));
 
-
 export const initStore = () => {
   const kindWithNames = getVRStories();
   const stories: Story[] = [];

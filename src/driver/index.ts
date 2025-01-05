@@ -13,6 +13,8 @@ import fs from "fs";
 import { exec, spawn } from "child_process";
 import { logBlue, logRed } from "@/console";
 import { SingleBar, Presets } from "cli-progress";
+import { splitArrayIntoParts } from "@/utils/array";
+import { findEmulatorByAvdName } from "@/devices/android";
 
 type Config = Parameters<typeof remote>[0];
 
@@ -22,15 +24,24 @@ const driverConfig: Partial<Config> = {
   logLevel: "silent", // TODO: add verbose;
 };
 
-const getDriverForPlatform = async (device: Device, story: Story) => {
+const getDriverForPlatform = async (
+  device: Device,
+  story: Story,
+  deviceIndex: number = 0,
+) => {
   const name = story.name.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+  const deviceName =
+    deviceIndex === 0 ? device.name : `${device.name}_${deviceIndex + 1}`;
+  const emulatorId = findEmulatorByAvdName(deviceName);
+  console.log({ deviceName, emulatorId });
+
   if (device.platform === "android") {
     const driver = await remote({
       ...driverConfig,
       capabilities: {
         platformName: "Android",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": device.name,
+        "appium:udid": emulatorId,
         "appium:appPackage": appId,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
@@ -99,18 +110,44 @@ const processStoriesSequentially = async (
   bar: SingleBar,
 ) => {
   const failedStories: Story[] = [];
-  for (const story of stories) {
-    const { driver, element } = await getDriverForPlatform(device, story);
+  const numberOfDevices = Array(device.devices ?? 1).fill("");
 
-    try {
-      await processStory(device.name, story.fullName, bar, element, driver);
-    } catch (e) {
-      logBlue("\n", story.fullName, "Processing failed, will retry", e, "\n");
-      failedStories.push(story);
-    } finally {
-      await driver.deleteSession();
-    }
-  }
+  const groupedStoriesPerDevice = splitArrayIntoParts(
+    stories,
+    numberOfDevices.length,
+  );
+
+  logBlue("Devices", numberOfDevices);
+
+  await Promise.all(
+    numberOfDevices.map(async (_, index) => {
+      const storiesForDevice = groupedStoriesPerDevice[index];
+      logBlue("storiesForDevice", storiesForDevice.length);
+
+      for (const story of storiesForDevice) {
+        const { driver, element } = await getDriverForPlatform(
+          device,
+          story,
+          index,
+        );
+
+        try {
+          await processStory(device.name, story.fullName, bar, element, driver);
+        } catch (e) {
+          logBlue(
+            "\n",
+            story.fullName,
+            "Processing failed, will retry",
+            e,
+            "\n",
+          );
+          failedStories.push(story);
+        } finally {
+          await driver.deleteSession();
+        }
+      }
+    }),
+  );
 
   for (const failedStory of failedStories) {
     const { driver, element } = await getDriverForPlatform(device, failedStory);
