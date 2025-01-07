@@ -63,7 +63,7 @@ export function findEmulatorByAvdName(targetAvdName: string) {
     }).trim();
 
     if (avdName.startsWith(targetAvdName)) {
-      logBlue(`Emulator ID for AVD '${targetAvdName}' is: ${emulatorId}`);
+      logBlue(targetAvdName, `Emulator ID is: ${emulatorId}`);
       return emulatorId;
     }
   }
@@ -71,36 +71,46 @@ export function findEmulatorByAvdName(targetAvdName: string) {
   return;
 }
 
-async function waitForEmulator() {
+async function waitForEmulator(emulatorName: string) {
   try {
     let deviceReady = false;
 
     while (!deviceReady) {
-      const { stdout } = await execAsync("adb devices");
-      const devices = stdout
-        .split("\n")
-        .filter((line) => line.includes("emulator"));
+      const emulatorId = findEmulatorByAvdName(emulatorName);
 
-      if (devices.some((line) => line.includes("offline"))) {
-        logBlue("Emulator is offline. Waiting...");
-      } else if (devices.some((line) => line.includes("device"))) {
-        logBlue("Emulator is online. Checking boot status...");
-        const { stdout: bootStatus } = await execAsync(
-          "adb shell getprop sys.boot_completed",
-        );
-        if (bootStatus.trim() === "1") {
-          deviceReady = true;
-        } else {
-          logBlue("Emulator is online but still booting...");
-        }
-      } else {
-        logBlue("No emulator found. Waiting...");
+      if (!emulatorId) {
+        logBlue(emulatorName, "Emulator is closed. Waiting...");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        continue;
       }
+
+      const { stdout } = await execAsync("adb devices");
+      const deviceLine = stdout
+        .split("\n")
+        .find((line) => line.includes(emulatorId));
+
+      if (deviceLine?.includes("offline")) {
+        logBlue(emulatorName, "Emulator is offline. Waiting...");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        continue;
+      }
+
+      logBlue(emulatorName, "Emulator is online. Checking boot status...");
+      const { stdout: bootStatus } = await execAsync(
+        `adb -s ${emulatorId} shell getprop sys.boot_completed`,
+      );
+
+      if (bootStatus.trim() === "1") {
+        deviceReady = true;
+        return;
+      }
+
+      logBlue(emulatorName, "Emulator is online but still booting...");
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   } catch (error) {
-    logRed("Error while waiting for the emulator:", error);
+    logRed(emulatorName, "Error while waiting for the emulator:", error);
     throw error;
   }
 }
@@ -122,7 +132,7 @@ async function startEmulator(deviceName: string) {
 
     logBlue(deviceName, "Emulator started. Waiting for the device to boot...");
 
-    await waitForEmulator();
+    await waitForEmulator(deviceName);
 
     logGreen(deviceName, "Emulator is ready.");
   } catch (error) {
@@ -215,11 +225,11 @@ const installApp = async (emulatorId: string) => {
   );
 
   if (stdout) {
-    logGreen("App installed", stdout);
+    logGreen(emulatorId, "App installed", stdout);
   }
 
   if (stderr) {
-    logRed("App failed to install", stderr);
+    logRed(emulatorId, "App failed to install", stderr);
   }
 };
 
@@ -229,7 +239,8 @@ const attemptAppInstall = async (emulatorId: string) => {
   if (!isAppInstalled) {
     if (!apkPath) {
       logRed(
-        `App is not instaled on ${emulatorId}, install the app on the emulator or provide --apkPath as argument`,
+        emulatorId,
+        `App is not instaled on, install the app on the emulator or provide --apkPath as argument`,
       );
       return;
     }
@@ -257,7 +268,7 @@ export const warmUpEmulator = async (device: Device) => {
   }
 
   if (!emulatorId) {
-    logRed("Emulator does not exist");
+    logRed(device.name, "Emulator does not exist");
     return;
   }
 
@@ -280,11 +291,11 @@ export const warmUpEmulator = async (device: Device) => {
           logBlue(emulatorName, "is not runnig");
           await startEmulator(emulatorName);
 
-          emulatorId = findEmulatorByAvdName(device.name);
+          emulatorId = findEmulatorByAvdName(emulatorName);
         }
 
         if (!emulatorId) {
-          logRed("Emulator does not exist");
+          logRed(emulatorName, "Emulator does not exist");
           return;
         }
 
@@ -319,7 +330,7 @@ export const warmUpEmulator = async (device: Device) => {
       const emulatorId = findEmulatorByAvdName(emulatorName);
 
       if (!emulatorId) {
-        logRed("Emulator does not exist");
+        logRed(emulatorId, "Emulator does not exist");
         return;
       }
 
