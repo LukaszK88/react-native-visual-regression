@@ -24,16 +24,16 @@ const checkIfAppIsInstalled = async (uuid: string) => {
       `xcrun simctl get_app_container ${uuid} ${appId}`,
     );
     if (stdout) {
-      logBlue("App is installed on", uuid);
+      logBlue(uuid, "App is installed on");
       return true;
     }
     if (stderr) {
-      logBlue("App not installed on", uuid);
+      logBlue(uuid, "App not installed on");
 
       return false;
     }
   } catch (e) {
-    logBlue("App not installed on", uuid, e);
+    logBlue(uuid, "App not installed on", e);
 
     return false;
   }
@@ -42,9 +42,9 @@ const checkIfAppIsInstalled = async (uuid: string) => {
 const installApp = async (uuid: string) => {
   if (!appPath) {
     logRed(
+      uuid,
       "App installation requested but appPath argument was not provided",
       "Either provide --appPath or install the app on the simulator",
-      uuid,
     );
 
     return;
@@ -55,15 +55,15 @@ const installApp = async (uuid: string) => {
       `xcrun simctl install ${uuid} "${appPath}"`,
     );
     if (stderr) {
-      logBlue("App was not installed on", uuid);
+      logBlue(uuid, "App was not installed on");
 
       return false;
     }
 
-    logBlue("App was installed on", uuid);
+    logBlue(uuid, "App was installed on");
     return true;
   } catch (e) {
-    logBlue("App was not installed on", uuid, e);
+    logBlue(uuid, "App was not installed on", e);
 
     return false;
   }
@@ -145,7 +145,7 @@ const handlePararellDevicesForBaseSimulator = async (
         await waitForSimulator(udid);
       }
 
-      logBlue(`Simulator "${simulatorName}" is ready.`);
+      logBlue(simulatorName, `is ready.`);
 
       const isInstalled = await checkIfAppIsInstalled(udid);
 
@@ -161,14 +161,14 @@ const handlePararellDevicesForBaseSimulator = async (
 export async function startSimulator(device: Device) {
   const simulatorName = device.name;
   try {
-    logBlue(`Finding simulator: ${simulatorName}`);
+    logBlue(simulatorName, `Finding simulator`);
 
     const simulatorsOutput = await listSimulators();
     const simulators = parseSimulators(simulatorsOutput);
 
     const simulator = simulators.find((sim) => sim.name === simulatorName);
     if (!simulator) {
-      throw new Error(`Simulator "${simulatorName}" not found or unavailable.`);
+      throw new Error(`"${simulatorName}" not found or unavailable.`);
     }
 
     if (simulator.status === "Booted") {
@@ -187,7 +187,7 @@ export async function startSimulator(device: Device) {
       return;
     }
 
-    logBlue(`Booting simulator: ${simulator.name} (${simulator.udid})`);
+    logBlue(simulator.name, simulator.udid, `Booting`);
 
     await execAsync(`xcrun simctl boot ${simulator.udid}`);
 

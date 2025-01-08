@@ -88,15 +88,17 @@ Additionally, the run will produce:
 npx rn-vr -a
 ```
 
-
 ### Command Arguments
 
-| Argument               | Default   | Example                                                            | Notes                                                |
-| --------------         | --------- | --------------------------                                         | ---------------------------------------------------- |
-| --approve \| -a        | undefined | -a                                                                 | Approve base images with the current version         |
-| --file \| -f           | undefined | -f .storybook/stories/Button/Button.stories.tsx                    | Filename to run visual regression on                 |
-| --story \| -s          | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name   |                                                      |
-| --device \| -d         | undefined | -d "Pixel 8" -d "iPhone 15" | Run only on specified devices        |                                                      |
+| Argument               | Default   | Example                                                                  | Notes                                                |
+| --------------         | --------- | --------------------------                                               | ---------------------------------------------------- |
+| --approve \| -a        | undefined | -a                                                                       | Approve base images with the current version         |
+| --file \| -f           | undefined | -f .storybook/stories/Button/Button.stories.tsx                          | Filename to run visual regression on                 |
+| --story \| -s          | undefined | -s MyButton-AnotherExample | Target a particular Story kind-name         |                                                      |
+| --device \| -d         | undefined | -d "Pixel 8" -d "iPhone 15" | Run only on specified devices              |                                                      |
+| --reportFormat \| -rf  | md        | --reportFormat "html" | Format of the generated report                   |                                                      |
+| --appPath              | undefined | --appPath="./DerivedData/Build/Products/Dev-iphonesimulator/VisualRegression.app" | Path to *.app which can be installed on simulator |
+| --apkPath              | undefined | --apkPath="./android/app/build/outputs/apk/dev/release/app-dev-release.apk" | Path to *.apk which can be installed on emulator |
 | --reportFormat \| -rf  | md        | --reportFormat "html" | Format of the generated report             |                                                      |
 | --migrateToV2          | undefined | --migrateToV2 | Migrate baseline directory to V2 structure         |                                                      |
 
@@ -107,6 +109,45 @@ npx rn-vr -a
 - The app can launch in Storybook mode, preferably without a UI, so you can capture only the screen. See the `example` directory for more details.
 - Story files should end with `*.stories.tsx`.
 
+### I want tests to run faster
+
+Over time, test runs may slow down due to an increasing number of assertions. To address this, you can spin up additional devices to distribute the assertions across multiple devices of the same type.
+
+Update `rn-vr.config.js` with number of addtional devices.
+
+Modify the configuration to specify the number of additional devices:
+```javascript
+module.exports = {
+  devices: [
+    {
+      platform: 'android',
+      name: 'Pixel_8_API_34',
+      devices: 3, // <-- Number of devices you want to use
+    },
+     {
+      platform: 'ios',
+      name: 'iPhone 15',
+      devices: 3, // <-- Number of devices you want to use
+    },
+  ],
+  // Other configurations...
+};
+```
+
+When the devices option is specified, additional devices will be created if they don't already exist.
+
+These additional devices will be clones of the base device, with names like:
+
+`Pixel_8_API_34_2`
+`Pixel_8_API_34_3`
+
+`iPhone 15_2`
+`iPhone 15_3`
+
+##### Preinstalling the App
+
+If you provide the `--apk` and/or `--app` arguments, the app will be preinstalled on all devices before the tests are executed.
+Alternatively, you can manually install the app after the additional devices are created.
 
 ### Migration from v1 to v2
 

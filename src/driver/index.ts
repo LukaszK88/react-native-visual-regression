@@ -27,9 +27,14 @@ const driverConfig: Partial<Config> = {
 const getDriverForPlatform = async (
   device: Device,
   story: Story,
-  deviceId?: string,
+  deviceId: string,
+  index: number,
 ) => {
   const name = story.name.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+
+  const isAndroid = device.platform === "android";
+
+  const port = +`4${isAndroid ? 7 : 8}33` + index;
 
   if (device.platform === "android") {
     const driver = await remote({
@@ -39,6 +44,7 @@ const getDriverForPlatform = async (
         "appium:automationName": "UiAutomator2",
         "appium:udid": deviceId,
         "appium:appPackage": appId,
+        "appium:systemPort": port,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}"`,
@@ -61,6 +67,7 @@ const getDriverForPlatform = async (
       "appium:udid": deviceId,
       "appium:platformVersion": "17.5",
       "appium:bundleId": appId,
+      "appium:wdaLocalPort": port,
       "appium:processArguments": {
         args: ["-kind", story.kind, "-name", name],
       },
@@ -122,6 +129,7 @@ const processStoriesSequentially = async (
           device,
           story,
           pararellDevice.id,
+          index,
         );
 
         try {
@@ -150,6 +158,7 @@ const processStoriesSequentially = async (
       device,
       failedStory,
       pararellDevice.id,
+      0,
     );
 
     try {
