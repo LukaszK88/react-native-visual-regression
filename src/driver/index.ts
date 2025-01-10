@@ -34,7 +34,7 @@ const getDriverForPlatform = async (
 
   const isAndroid = device.platform === "android";
 
-  const port = +`4${isAndroid ? 7 : 8}33` + index;
+  const port = +`4${isAndroid ? 7 : 8}3${index}`;
 
   if (device.platform === "android") {
     const driver = await remote({
