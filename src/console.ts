@@ -16,7 +16,7 @@ const log = (
   console.log(`${colors[color]}${output}${colors.reset}`);
 };
 
-export const logGreen = (...message: string[]) => log(message, "green");
+export const logGreen = (...message: (string | unknown)[]) => log(message, "green");
 export const logBlue = (...message: (string | unknown)[]) => {
   if (isVerbose) {
     return log(message, "blue");

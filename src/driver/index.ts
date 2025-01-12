@@ -114,7 +114,7 @@ const processStoriesSequentially = async (
   const failedStories: Story[] = [];
 
   const pararellDevices = deviceStore.getState().devices[device.name];
-
+  
   const numberOfDevices = pararellDevices.length;
 
   const groupedStoriesPerDevice = splitArrayIntoParts(stories, numberOfDevices);

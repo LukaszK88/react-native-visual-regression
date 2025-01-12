@@ -1,14 +1,19 @@
 import { apkPath } from "@/args";
 import { appId } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
-import {
-  addBaseDevice,
-  addToBaseDevice,
-  deviceStore,
-} from "@/stores/deviceStore";
+import { addBaseDevice, addToBaseDevice } from "@/stores/deviceStore";
 import { Device } from "@/types";
-import { exec, execSync, spawn } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import {
+  checkIfBootCompleted,
+  getAvdById,
+  getInstalledApp,
+  installApk,
+  listDevices,
+} from "@/devices/android/adb";
+import { listEmulators } from "./android/emulator";
+import { createAVD, listAVDs } from "./android/avdmanager";
 
 const androidVersionToApiMap: Record<string, number> = {
   "Android 1.0": 1,
@@ -50,17 +55,16 @@ const androidVersionToApiMap: Record<string, number> = {
 
 const execAsync = promisify(exec);
 
-export function findEmulatorByAvdName(targetAvdName: string) {
-  const devicesOutput = execSync("adb devices", { encoding: "utf-8" });
+export async function findEmulatorByAvdName(targetAvdName: string) {
+  const devicesOutput = await listDevices();
+
   const emulatorIds = devicesOutput
     .split("\n")
     .filter((line) => line.startsWith("emulator-"))
     .map((line) => line.split("\t")[0]);
 
   for (const emulatorId of emulatorIds) {
-    const avdName = execSync(`adb -s ${emulatorId} emu avd name`, {
-      encoding: "utf-8",
-    }).trim();
+    const avdName = await getAvdById(emulatorId);
 
     if (avdName.startsWith(targetAvdName)) {
       logBlue(targetAvdName, `Emulator ID is: ${emulatorId}`);
@@ -76,7 +80,7 @@ async function waitForEmulator(emulatorName: string) {
     let deviceReady = false;
 
     while (!deviceReady) {
-      const emulatorId = findEmulatorByAvdName(emulatorName);
+      const emulatorId = await findEmulatorByAvdName(emulatorName);
 
       if (!emulatorId) {
         logBlue(emulatorName, "Emulator is closed. Waiting...");
@@ -84,7 +88,8 @@ async function waitForEmulator(emulatorName: string) {
         continue;
       }
 
-      const { stdout } = await execAsync("adb devices");
+      const stdout = await listDevices();
+
       const deviceLine = stdout
         .split("\n")
         .find((line) => line.includes(emulatorId));
@@ -96,13 +101,11 @@ async function waitForEmulator(emulatorName: string) {
       }
 
       logBlue(emulatorName, "Emulator is online. Checking boot status...");
-      const { stdout: bootStatus } = await execAsync(
-        `adb -s ${emulatorId} shell getprop sys.boot_completed`,
-      );
+      const completed = await checkIfBootCompleted(emulatorId);
 
-      if (bootStatus.trim() === "1") {
+      if (completed) {
         deviceReady = true;
-        return;
+        return emulatorId;
       }
 
       logBlue(emulatorName, "Emulator is online but still booting...");
@@ -132,20 +135,22 @@ async function startEmulator(deviceName: string) {
 
     logBlue(deviceName, "Emulator started. Waiting for the device to boot...");
 
-    await waitForEmulator(deviceName);
+    const emulatorId = await waitForEmulator(deviceName);
 
-    logGreen(deviceName, "Emulator is ready.");
+    logGreen(deviceName, "Emulator is ready.", "ID is", emulatorId);
+
+    return emulatorId;
   } catch (error) {
     logRed(deviceName, "Error starting emulator:", error);
   }
 }
 
 const emulatorExists = async (name: string) => {
-  const { stdout } = await execAsync("emulator -list-avds");
+  const emulators = await listEmulators();
 
-  const existingEmulators = stdout.split("\n");
+  const existingEmulators = emulators.split("\n");
 
-  if (!existingEmulators.includes(name)) {
+  if (!existingEmulators.map((emultator) => emultator.trim()).includes(name)) {
     logRed(name, "does not exist");
     return false;
   }
@@ -153,61 +158,11 @@ const emulatorExists = async (name: string) => {
   return true;
 };
 
-function parseOutput(output: string) {
-  const devices = output.split("---------");
-  const result: Record<string, Record<string, string>> = {};
-
-  for (const device of devices) {
-    const lines = device.trim().split("\n");
-    if (lines.length === 0) continue;
-
-    // Extract device name from the second line
-    const nameLine = lines[0]?.trim();
-    const nameMatch = nameLine?.match(/^([\w\s/]+):\s*(.+)$/);
-    if (!nameMatch) continue;
-
-    const deviceName = nameMatch[2].trim();
-    result[deviceName] = {};
-
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-
-      // Match lines with a `Key: Value` format
-      const keyValueMatch = trimmedLine.match(/^([\w\s/]+):\s*(.+)$/);
-      if (keyValueMatch) {
-        const key = keyValueMatch[1].trim();
-        const value = keyValueMatch[2].trim();
-
-        if (value.includes("Tag/ABI")) {
-          // Handle "Based on" and "Tag/ABI" nested values
-          const match = value.match(/^(.*?)(\s+Tag\/ABI:\s*.+)$/);
-          if (match) {
-            const basedOnValue = match[1].trim();
-            const tagAbi = match[2].trim();
-
-            result[deviceName][key] = basedOnValue;
-
-            const [abiKey, abiValue] = tagAbi.split(":");
-            result[deviceName][abiKey.trim()] = abiValue.trim();
-          }
-          continue;
-        }
-
-        result[deviceName][key] = value;
-      }
-    }
-  }
-
-  return result;
-}
-
 const checkIfAppIsInstalled = async (emulatorId: string) => {
   try {
-    const { stdout } = await execAsync(
-      `adb -s ${emulatorId} shell pm list packages | grep ${appId}`,
-    );
+    const match = await getInstalledApp(emulatorId, appId);
 
-    const isInstalled = stdout.includes(appId);
+    const isInstalled = match.includes(appId);
 
     logBlue(emulatorId, "is app instaled:", isInstalled);
 
@@ -220,16 +175,12 @@ const checkIfAppIsInstalled = async (emulatorId: string) => {
 };
 
 const installApp = async (emulatorId: string) => {
-  const { stdout, stderr } = await execAsync(
-    `adb -s ${emulatorId} install ${apkPath}`,
-  );
+  const succeded = await installApk(emulatorId, apkPath!);
 
-  if (stdout) {
-    logGreen(emulatorId, "App installed", stdout);
-  }
-
-  if (stderr) {
-    logRed(emulatorId, "App failed to install", stderr);
+  if (succeded) {
+    logGreen(emulatorId, "App installed");
+  } else {
+    logRed(emulatorId, "App failed to install");
   }
 };
 
@@ -242,11 +193,90 @@ const attemptAppInstall = async (emulatorId: string) => {
         emulatorId,
         `App is not instaled on, install the app on the emulator or provide --apkPath as argument`,
       );
-      return;
+      return false;
     }
     logBlue("Attempt install");
 
     await installApp(emulatorId);
+    return true;
+  }
+
+  return true;
+};
+
+const handleExistingEmulator = async (emulatorName: string) => {
+  let emulatorId = await findEmulatorByAvdName(emulatorName);
+  if (!emulatorId) {
+    logBlue(emulatorName, "is not runnig");
+    emulatorId = await startEmulator(emulatorName);
+  }
+
+  if (!emulatorId) {
+    logRed(emulatorName, "Emulator does not exist");
+    return;
+  }
+
+  const wasInstallSuccessful = await attemptAppInstall(emulatorId);
+
+  if (wasInstallSuccessful) {
+    return emulatorId;
+  }
+};
+
+export const handleAdditionalDevices = async (device: Device) => {
+  if (!device.devices) return;
+  // one is already running
+  const numOfDevices = Array(device.devices - 1).fill("");
+
+  for (const [index] of numOfDevices.entries()) {
+    const emulatorName = `${device.name}_${index + 2}`;
+
+    const doesEmulatorExist = await emulatorExists(emulatorName);
+
+    if (doesEmulatorExist) {
+      const emulatorId = await handleExistingEmulator(emulatorName);
+
+      if (emulatorId) {
+        addToBaseDevice(device.name, {
+          name: emulatorName,
+          id: emulatorId,
+        });
+      }
+      continue;
+    }
+
+    const parsedAVDs = await listAVDs();
+    const configurationAVD = parsedAVDs[device.name];
+
+    const deviceType = configurationAVD.Device.replace(/\s*\(.*?\)/g, "");
+    const basedOn = configurationAVD["Based on"];
+    const apiLevel = androidVersionToApiMap[basedOn];
+    const abi = configurationAVD["Tag/ABI"].replace("/", ";");
+
+    await createAVD({
+      deviceType,
+      emulatorName,
+      apiLevel,
+      abi,
+    });
+
+    logBlue(emulatorName, "created");
+
+    const emulatorId = await startEmulator(emulatorName);
+
+    if (!emulatorId) {
+      logRed(emulatorId, "Emulator does not exist");
+      return;
+    }
+
+    const wasInstallSuccessful = await attemptAppInstall(emulatorId);
+
+    if (wasInstallSuccessful) {
+      addToBaseDevice(device.name, {
+        name: emulatorName,
+        id: emulatorId,
+      });
+    }
   }
 };
 
@@ -258,88 +288,13 @@ export const warmUpEmulator = async (device: Device) => {
     throw new Error("Device does not exist, create emulator");
   }
 
-  let emulatorId = findEmulatorByAvdName(device.name);
+  const emulatorId = await handleExistingEmulator(device.name);
 
   if (!emulatorId) {
-    logBlue(device.name, "is not runnig");
-    await startEmulator(device.name);
-
-    emulatorId = findEmulatorByAvdName(device.name);
-  }
-
-  if (!emulatorId) {
-    logRed(device.name, "Emulator does not exist");
     return;
   }
 
-  await attemptAppInstall(emulatorId);
-
   addBaseDevice({ name: device.name, id: emulatorId });
 
-  if (device.devices) {
-    // one is already running
-    const numOfDevices = Array(device.devices - 1).fill("");
-
-    for (const [index] of numOfDevices.entries()) {
-      const emulatorName = `${device.name}_${index + 2}`;
-
-      const doesEmulatorExist = await emulatorExists(emulatorName);
-
-      if (doesEmulatorExist) {
-        let emulatorId = findEmulatorByAvdName(emulatorName);
-        if (!emulatorId) {
-          logBlue(emulatorName, "is not runnig");
-          await startEmulator(emulatorName);
-
-          emulatorId = findEmulatorByAvdName(emulatorName);
-        }
-
-        if (!emulatorId) {
-          logRed(emulatorName, "Emulator does not exist");
-          return;
-        }
-
-        await attemptAppInstall(emulatorId);
-        addToBaseDevice(device.name, {
-          name: emulatorName,
-          id: emulatorId,
-        });
-
-        continue;
-      }
-
-      const { stdout } = await execAsync(
-        `$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list avd`,
-      );
-
-      const parsedAVDs = parseOutput(stdout);
-      const configurationAVD = parsedAVDs[device.name];
-
-      const deviceType = configurationAVD.Device.replace(/\s*\(.*?\)/g, "");
-      const basedOn = configurationAVD["Based on"];
-      const apiLevel = androidVersionToApiMap[basedOn];
-      const abi = configurationAVD["Tag/ABI"].replace("/", ";");
-
-      await execAsync(
-        `$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n ${emulatorName} -k "system-images;android-${apiLevel};${abi}" -d "${deviceType}"`,
-      );
-
-      logBlue(emulatorName, "created");
-      await startEmulator(emulatorName);
-
-      const emulatorId = findEmulatorByAvdName(emulatorName);
-
-      if (!emulatorId) {
-        logRed(emulatorId, "Emulator does not exist");
-        return;
-      }
-
-      await attemptAppInstall(emulatorId);
-
-      addToBaseDevice(device.name, {
-        name: emulatorName,
-        id: emulatorId,
-      });
-    }
-  }
+  await handleAdditionalDevices(device);
 };

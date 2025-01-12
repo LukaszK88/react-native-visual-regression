@@ -16,7 +16,7 @@ describe("config", () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { devices } = require("./config");
 
-    expect(devices).toEqual([{ name: "iPhone 15", platform: "ios" }]);
+    expect(devices).toEqual([{ name: "iPhone 15", platform: "ios", devices: 3 }]);
   });
 
   it("should filter devices without the device filter applied", () => {
@@ -27,8 +27,8 @@ describe("config", () => {
     const { devices } = require("./config");
 
     expect(devices).toEqual([
-      { name: "Pixel_8_API_35", platform: "android" },
-      { name: "iPhone 15", platform: "ios" },
+      { name: "Pixel_8_API_34", platform: "android", devices: 3},
+      { name: "iPhone 15", platform: "ios", devices: 3 },
     ]);
   });
 });
