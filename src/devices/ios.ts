@@ -12,7 +12,7 @@ import {
   installApp,
   listDevices,
   openSimulator,
-} from "./ios/xcrun";
+} from "@/devices/ios/xcrun";
 
 const handleInstallApp = async (uuid: string) => {
   if (!appPath) {
@@ -22,7 +22,7 @@ const handleInstallApp = async (uuid: string) => {
       "Either provide --appPath or install the app on the simulator",
     );
 
-    return;
+    return false;
   }
 
   try {
@@ -65,10 +65,46 @@ const handleCreateSimulator = async (
   }
 };
 
-const handlePararellDevicesForBaseSimulator = async (
-  device: Device,
-  simulators: { name: string; udid: string; status: "Booted" | "Shutdown" }[],
+const handleExistingSimulator = async (
+  name: string,
+  udid: string,
+  status: "Booted" | "Shutdown",
 ) => {
+  if (status !== "Booted") {
+    logBlue(name, udid, `Booting`);
+
+    await bootSimulator(udid);
+
+    logBlue(name, "started. Waiting for it to be ready...");
+
+    await openSimulator();
+
+    await waitForSimulator(udid);
+  }
+
+  logBlue(name, "is ready.");
+
+  const isInstalled = await checkIfAppIsInstalled(udid, appId);
+  if (!isInstalled) {
+    const installSuccessful = await handleInstallApp(udid);
+
+    if (!installSuccessful) {
+      return false;
+    }
+    return true;
+  }
+  return true;
+};
+
+const findSimulator = async (simulatorName: string) => {
+  logBlue(simulatorName, `Finding simulator`);
+
+  const simulators = await listDevices();
+
+  return simulators.find((sim) => sim.name === simulatorName);
+};
+
+export const handlePararellDevicesForBaseSimulator = async (device: Device) => {
   if (device.devices) {
     const { deviceType, runtime } = await getDeviceDetails(device.name);
 
@@ -86,37 +122,33 @@ const handlePararellDevicesForBaseSimulator = async (
     for (const [index] of numOfDevices.entries()) {
       const simulatorName = `${device.name}_${index + 2}`;
 
-      const simulatorExists = simulators.find(
-        (sim) => sim.name === simulatorName,
-      );
-
-      let udid = simulatorExists?.udid;
+      const simulatorExists = await findSimulator(simulatorName);
 
       if (!simulatorExists) {
         logBlue(simulatorName, "Does not exist, attempt creation");
 
-        udid = await handleCreateSimulator(simulatorName, deviceType, runtime);
+        await handleCreateSimulator(simulatorName, deviceType, runtime);
       }
 
-      if (!udid) {
-        logRed("No udid");
-        continue;
+      const simulator = await findSimulator(simulatorName);
+
+      if (!simulator) {
+        logRed(simulatorName, "Still does not exist");
+
+        return;
       }
 
-      if (simulatorExists?.status !== "Booted") {
-        await bootSimulator(udid);
-        await waitForSimulator(udid);
+      const isReady = await handleExistingSimulator(
+        simulatorName,
+        simulator.udid,
+        simulator.status,
+      );
+
+      if (!isReady) {
+        return;
       }
 
-      logBlue(simulatorName, `is ready.`);
-
-      const isInstalled = await checkIfAppIsInstalled(udid, appId);
-
-      if (!isInstalled) {
-        await handleInstallApp(udid);
-      }
-
-      addToBaseDevice(device.name, { name: simulatorName, id: udid });
+      addToBaseDevice(device.name, { name: simulatorName, id: simulator.udid });
     }
   }
 };
@@ -124,52 +156,24 @@ const handlePararellDevicesForBaseSimulator = async (
 export async function startSimulator(device: Device) {
   const simulatorName = device.name;
   try {
-    logBlue(simulatorName, `Finding simulator`);
-
-    const simulators = await listDevices();
-
-    const simulator = simulators.find((sim) => sim.name === simulatorName);
+    const simulator = await findSimulator(simulatorName);
     if (!simulator) {
       throw new Error(`"${simulatorName}" not found or unavailable.`);
     }
 
-    if (simulator.status === "Booted") {
-      logBlue(simulatorName, "Already Booted");
+    const isReady = await handleExistingSimulator(
+      simulator.name,
+      simulator.udid,
+      simulator.status,
+    );
 
-      const isInstalled = await checkIfAppIsInstalled(simulator.udid, appId);
-
-      if (!isInstalled) {
-        await handleInstallApp(simulator.udid);
-      }
-
-      addBaseDevice({ name: device.name, id: simulator.udid });
-
-      await handlePararellDevicesForBaseSimulator(device, simulators);
-
+    if (!isReady) {
       return;
-    }
-
-    logBlue(simulator.name, simulator.udid, `Booting`);
-
-    await bootSimulator(simulator.udid);
-
-    logBlue(simulator.name, "started. Waiting for it to be ready...");
-
-    await openSimulator();
-
-    await waitForSimulator(simulator.udid);
-
-    logBlue(`Simulator "${simulator.name}" is ready.`);
-
-    const isInstalled = await checkIfAppIsInstalled(simulator.udid, appId);
-
-    if (!isInstalled) {
-      await handleInstallApp(simulator.udid);
     }
 
     addBaseDevice({ name: device.name, id: simulator.udid });
 
-    await handlePararellDevicesForBaseSimulator(device, simulators);
+    await handlePararellDevicesForBaseSimulator(device);
   } catch (error) {
     logRed("Error starting simulator:", error);
     throw error;
@@ -194,6 +198,4 @@ async function waitForSimulator(udid: string) {
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
-
-  logBlue("Simulator is ready!");
 }
