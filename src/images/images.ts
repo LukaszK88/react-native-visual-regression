@@ -1,10 +1,9 @@
 import fs from "fs/promises";
 
-import { generateMarkdownReport, TestResults } from "@/report";
 import { join } from "path";
 import { PNG } from "pngjs";
 import { logBlue, logGreen, logRed } from "@/console";
-import { isFilterApplied } from "@/args";
+import { isFilterApplied, maskHomeBar } from "@/args";
 import {
   VISUAL_REGRESSION_BASELINE_DIR,
   VISUAL_REGRESSION_CURRENT_DIR,
@@ -13,6 +12,10 @@ import {
 import { vrStore } from "@/store";
 import { devices } from "@/config";
 import { Story } from "@/types";
+import { TestResults } from "@/reports/types";
+import { generateReport } from "@/reports/report";
+
+const BOTTOM_MASK_HEIGHT = 40;
 
 /**
  * If current image does not have a baseline, set one.
@@ -108,6 +111,24 @@ export const processImages = async () => {
       const { width, height } = baselineImage;
       const diff = new PNG({ width, height });
 
+      // Mask bottom of both images
+      function maskBottom(image: PNG, maskHeight: number) {
+        for (let y = height - maskHeight; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const idx = (width * y + x) * 4;
+            image.data[idx + 0] = 0; // R
+            image.data[idx + 1] = 0; // G
+            image.data[idx + 2] = 0; // B
+            image.data[idx + 3] = 255; // A
+          }
+        }
+      }
+
+      if (device.platform === "ios" && maskHomeBar) {
+        maskBottom(baselineImage, BOTTOM_MASK_HEIGHT);
+        maskBottom(currentImage, BOTTOM_MASK_HEIGHT);
+      }
+
       try {
         const pixelDiff = pixelmatch(
           baselineImage.data,
@@ -180,7 +201,7 @@ export const processImages = async () => {
     console.log("");
   }
 
-  await generateMarkdownReport(deviceResults);
+  await generateReport(deviceResults);
 };
 
 const deleteObsoleteImages = async (stories: Story[], deviceName: string) => {

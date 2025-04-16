@@ -1,4 +1,5 @@
 import { vrStore } from "@/store";
+import { deviceStore } from "@/stores/deviceStore";
 import { captureScreenshots } from ".";
 import { remote } from "webdriverio";
 import { writeFileSync } from "fs";
@@ -45,9 +46,16 @@ describe("index", () => {
     mock$.mockReturnValue({
       waitForDisplayed: jest.fn(),
     });
+
+    jest.spyOn(deviceStore, "getState").mockReturnValue({
+      devices: {
+        "iPhone 15": [{ name: "iPhone 15", id: "uuid" }],
+        Pixel_8_API_34: [{ name: "Pixel_8_API_34", id: "id" }],
+      },
+    });
   });
 
-  it("should run pararell driver run for devices", async () => {
+  it("should run pararell driver run for different platforms", async () => {
     jest
       .mocked(exec)
       .mockImplementation(
@@ -76,7 +84,8 @@ describe("index", () => {
       capabilities: {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
-        "appium:deviceName": "iPhone 15",
+        "appium:udid": "uuid",
+        "appium:wdaLocalPort": 4830,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
           args: ["-kind", "StoryKind", "-name", "Name A"],
@@ -91,7 +100,8 @@ describe("index", () => {
       capabilities: {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
-        "appium:deviceName": "iPhone 15",
+        "appium:udid": "uuid",
+        "appium:wdaLocalPort": 4830,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
           args: ["-kind", "StoryKindB", "-name", "Name B"],
@@ -107,7 +117,8 @@ describe("index", () => {
         "appium:appActivity": ".MainActivity",
         "appium:appPackage": "appId",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": "Pixel_8_API_34",
+        "appium:udid": "id",
+        "appium:systemPort": 4730,
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments":
           '--es kind StoryKind --es name "Name A"',
@@ -122,7 +133,135 @@ describe("index", () => {
         "appium:appActivity": ".MainActivity",
         "appium:appPackage": "appId",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": "Pixel_8_API_34",
+        "appium:udid": "id",
+        "appium:systemPort": 4730,
+        "appium:forceAppLaunch": true,
+        "appium:optionalIntentArguments":
+          '--es kind StoryKindB --es name "Name B"',
+        platformName: "Android",
+      },
+      hostname: "localhost",
+      logLevel: "silent",
+      port: 4723,
+    });
+
+    expect(mockTakeScreenshot).toHaveBeenCalledTimes(4);
+
+    expect(writeFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/iPhone 15/StoryKindB-NameB.png",
+      undefined,
+      "base64",
+    );
+    expect(writeFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/iPhone 15/StoryKind-NameA.png",
+      undefined,
+      "base64",
+    );
+    expect(writeFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/Pixel_8_API_34/StoryKind-NameA.png",
+      undefined,
+      "base64",
+    );
+    expect(writeFileSync).toHaveBeenCalledWith(
+      "visual-regression/current/Pixel_8_API_34/StoryKindB-NameB.png",
+      undefined,
+      "base64",
+    );
+  });
+
+  it("should run pararell driver run for different platforms on multiple devices", async () => {
+    jest
+      .mocked(exec)
+      .mockImplementation(
+        (cmd, options, callback) =>
+          callback?.(null, "stdout", "stderr") as unknown as ChildProcess,
+      );
+    jest.mocked(vrStore.getState).mockReturnValue({
+      stories: [
+        {
+          fullName: "StoryKind-NameA",
+          kind: "StoryKind",
+          name: "NameA",
+        },
+        {
+          fullName: "StoryKindB-NameB",
+          kind: "StoryKindB",
+          name: "NameB",
+        },
+      ],
+    });
+
+    jest.spyOn(deviceStore, "getState").mockReturnValue({
+      devices: {
+        "iPhone 15": [
+          { name: "iPhone 15", id: "uuid" },
+          { name: "iPhone 15_2", id: "uuid-2" },
+        ],
+        Pixel_8_API_34: [
+          { name: "Pixel_8_API_34", id: "id" },
+          { name: "Pixel_8_API_34_2", id: "id-2" },
+        ],
+      },
+    });
+
+    await captureScreenshots();
+
+    expect(remote).toHaveBeenCalledTimes(4);
+    expect(remote).toHaveBeenCalledWith({
+      capabilities: {
+        "appium:automationName": "XCUITest",
+        "appium:bundleId": "appId",
+        "appium:udid": "uuid",
+        "appium:wdaLocalPort": 4830,
+        "appium:platformVersion": "17.5",
+        "appium:processArguments": {
+          args: ["-kind", "StoryKind", "-name", "Name A"],
+        },
+        platformName: "iOS",
+      },
+      hostname: "localhost",
+      logLevel: "silent",
+      port: 4723,
+    });
+    expect(remote).toHaveBeenCalledWith({
+      capabilities: {
+        "appium:automationName": "XCUITest",
+        "appium:bundleId": "appId",
+        "appium:udid": "uuid-2",
+        "appium:wdaLocalPort": 4831,
+        "appium:platformVersion": "17.5",
+        "appium:processArguments": {
+          args: ["-kind", "StoryKindB", "-name", "Name B"],
+        },
+        platformName: "iOS",
+      },
+      hostname: "localhost",
+      logLevel: "silent",
+      port: 4723,
+    });
+    expect(remote).toHaveBeenCalledWith({
+      capabilities: {
+        "appium:appActivity": ".MainActivity",
+        "appium:appPackage": "appId",
+        "appium:automationName": "UiAutomator2",
+        "appium:udid": "id",
+        "appium:systemPort": 4730,
+        "appium:forceAppLaunch": true,
+        "appium:optionalIntentArguments":
+          '--es kind StoryKind --es name "Name A"',
+        platformName: "Android",
+      },
+      hostname: "localhost",
+      logLevel: "silent",
+      port: 4723,
+    });
+    expect(remote).toHaveBeenCalledWith({
+      capabilities: {
+        "appium:appActivity": ".MainActivity",
+        "appium:appPackage": "appId",
+        "appium:automationName": "UiAutomator2",
+        "appium:udid": "id-2",
+        "appium:systemPort": 4731,
         "appium:forceAppLaunch": true,
         "appium:optionalIntentArguments":
           '--es kind StoryKindB --es name "Name B"',
