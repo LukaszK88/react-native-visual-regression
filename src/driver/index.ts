@@ -64,6 +64,8 @@ const getDriverForPlatform = async (
     ...driverConfig,
     capabilities: {
       platformName: "iOS",
+      "appium:hideKeyboard": true,
+      "appium:connectHardwareKeyboard": true,
       "appium:automationName": "XCUITest",
       "appium:udid": deviceId,
       "appium:platformVersion": "17.5",
