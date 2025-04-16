@@ -48,7 +48,7 @@ const getDriverForPlatform = async (
         "appium:systemPort": port,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
-        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}"`,
+        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}" --es visualRegression "true"`,
       },
     });
 
@@ -70,7 +70,7 @@ const getDriverForPlatform = async (
       "appium:bundleId": appId,
       "appium:wdaLocalPort": port,
       "appium:processArguments": {
-        args: ["-kind", story.kind, "-name", name],
+        args: ["-kind", story.kind, "-name", name, "-visualRegression", "true"],
       },
     },
   });
