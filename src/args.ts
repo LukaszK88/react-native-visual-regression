@@ -11,6 +11,8 @@ const input = arg({
   "--reportFormat": String, // md | html
   "--apkPath": String,
   "--appPath": String,
+  "--maskHomeBar": Boolean,
+  "--driverLogLevel": String, // 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
   // Aliases
   "-a": "--approve",
   "-f": "--file",
@@ -29,5 +31,7 @@ export const isVerbose = input["--verbose"];
 export const reportFormat = input["--reportFormat"] ?? "md";
 export const apkPath = input["--apkPath"];
 export const appPath = input["--appPath"];
+export const maskHomeBar = input["--maskHomeBar"];
+export const driverLogLevel = input["--driverLogLevel"] ?? "silent";
 
 export const isFilterApplied = fileFilter || storyFilter || devicesFilter;

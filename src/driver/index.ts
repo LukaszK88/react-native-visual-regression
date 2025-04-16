@@ -15,13 +15,14 @@ import { logBlue, logRed } from "@/console";
 import { SingleBar, Presets } from "cli-progress";
 import { splitArrayIntoParts } from "@/utils/array";
 import { deviceStore } from "@/stores/deviceStore";
+import { driverLogLevel } from "@/args";
 
 type Config = Parameters<typeof remote>[0];
 
 const driverConfig: Partial<Config> = {
   hostname: "localhost",
   port: 4723,
-  logLevel: "silent", // TODO: add verbose;
+  logLevel: driverLogLevel as Config["logLevel"],
 };
 
 const getDriverForPlatform = async (
@@ -114,7 +115,7 @@ const processStoriesSequentially = async (
   const failedStories: Story[] = [];
 
   const pararellDevices = deviceStore.getState().devices[device.name];
-  
+
   const numberOfDevices = pararellDevices.length;
 
   const groupedStoriesPerDevice = splitArrayIntoParts(stories, numberOfDevices);

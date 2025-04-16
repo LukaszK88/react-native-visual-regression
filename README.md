@@ -99,6 +99,8 @@ npx rn-vr -a
 | --reportFormat \| -rf  | md        | --reportFormat "html" | Format of the generated report                   |                                                      |
 | --appPath              | undefined | --appPath="./DerivedData/Build/Products/Dev-iphonesimulator/VisualRegression.app" | Path to *.app which can be installed on simulator |
 | --apkPath              | undefined | --apkPath="./android/app/build/outputs/apk/dev/release/app-dev-release.apk" | Path to *.apk which can be installed on emulator |
+| --maskHomeBar          | undefined | --apkPath=true                                                     | Masks Home bar on iOS |
+| --driverLogLevel       | silent    | --driverLogLevel="debug"                                                     | verbosity of driver |
 | --reportFormat \| -rf  | md        | --reportFormat "html" | Format of the generated report             |                                                      |
 | --migrateToV2          | undefined | --migrateToV2 | Migrate baseline directory to V2 structure         |                                                      |
 
