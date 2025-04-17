@@ -15,6 +15,7 @@ import { processImages } from "@/images/images";
 import { runV2Migration } from "./utils/migration";
 import { warmUpDevices } from "./devices/devices";
 import { addRuntime } from "./reports/report";
+import { join } from "path";
 
 const runVisualRegression = async () => {
   if (migrateToV2) {
@@ -37,8 +38,8 @@ const handleApproveChanges = () => {
 
     const kind = Object.keys(kindWithNames)[0];
 
-    const screenshots = kindWithNames[kind].map(
-      (name) => `${kind}-${name}.png`,
+    const screenshots = kindWithNames[kind].map((name) =>
+      join(...kind.split("/"), `${name}.png`),
     );
 
     approveChangesForScreenshots(screenshots);
@@ -46,7 +47,8 @@ const handleApproveChanges = () => {
   }
 
   if (storyFilter) {
-    approveChangesForScreenshots([`${storyFilter}.png`]);
+    const nestedPath = join(...storyFilter.split("/")) + ".png";
+    approveChangesForScreenshots([nestedPath]);
     return;
   }
 

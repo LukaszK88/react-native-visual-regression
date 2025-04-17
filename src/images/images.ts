@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 
-import { join } from "path";
+import { dirname, join, relative } from "path";
 import { PNG } from "pngjs";
 import { logBlue, logGreen, logRed } from "@/console";
 import { isFilterApplied, maskHomeBar } from "@/args";
@@ -35,6 +35,9 @@ const checkIfImageHasBaseline = async (
 
   // If no baseline, set the current image as baseline
   if (!hasBaseline) {
+    // Ensure destination directory exists
+    await fs.mkdir(dirname(baselineImagePath), { recursive: true });
+
     await fs.rename(currentImagePath, baselineImagePath);
   }
 
@@ -204,27 +207,49 @@ export const processImages = async () => {
   await generateReport(deviceResults);
 };
 
+const getAllImagePaths = async (dir: string): Promise<string[]> => {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const paths: string[] = [];
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const nested = await getAllImagePaths(fullPath);
+      paths.push(...nested);
+    } else if (entry.isFile() && entry.name.endsWith(".png")) {
+      paths.push(fullPath);
+    }
+  }
+
+  return paths;
+};
+
 const deleteObsoleteImages = async (stories: Story[], deviceName: string) => {
-  // do not clean when filter is applied
   if (isFilterApplied) return;
 
-  const currentBaselineImages = await fs.readdir(
-    join(VISUAL_REGRESSION_BASELINE_DIR, deviceName),
+  const baselineDeviceDir = join(VISUAL_REGRESSION_BASELINE_DIR, deviceName);
+  const currentDeviceDir = join(VISUAL_REGRESSION_CURRENT_DIR, deviceName);
+  const diffDeviceDir = join(VISUAL_REGRESSION_DIFF_DIR, deviceName);
+
+  const allBaselinePaths = await getAllImagePaths(baselineDeviceDir);
+
+  const validImagePaths = new Set(
+    stories.map(
+      (story) => join(baselineDeviceDir, ...story.fullName.split("/")) + ".png",
+    ),
   );
 
-  const imageNames = stories.map((story) => `${story.fullName}.png`);
+  for (const baselineImagePath of allBaselinePaths) {
+    if (!validImagePaths.has(baselineImagePath)) {
+      const relPath = relative(baselineDeviceDir, baselineImagePath);
+      const currentImagePath = join(currentDeviceDir, relPath);
+      const diffImagePath = join(diffDeviceDir, relPath);
 
-  for (const baselineImage of currentBaselineImages) {
-    // skip folder if not the current device
-    if (!baselineImage.startsWith(deviceName)) continue;
+      await fs.rm(baselineImagePath, { force: true });
+      await fs.rm(currentImagePath, { force: true });
+      await fs.rm(diffImagePath, { force: true });
 
-    if (!imageNames.includes(baselineImage)) {
-      // Remove corresponding files from baseline, current, and diff directories
-      await fs.rm(join(VISUAL_REGRESSION_BASELINE_DIR, baselineImage));
-      await fs.rm(join(VISUAL_REGRESSION_CURRENT_DIR, baselineImage));
-      await fs.rm(join(VISUAL_REGRESSION_DIFF_DIR, baselineImage));
-
-      logRed("Removed", baselineImage);
+      logRed("Removed", relPath);
     }
   }
 };

@@ -33,4 +33,4 @@ export const initStore = () => {
   });
 
   vrStore.setState({ stories });
-}
+};

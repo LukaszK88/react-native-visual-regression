@@ -1,8 +1,6 @@
 import { main } from "@/run";
 import { processImages } from "@/images/images";
-import {
-  formatStoryFileToKindWithNames,
-} from "@/storybook/stories";
+import { formatStoryFileToKindWithNames } from "@/storybook/stories";
 import * as config from "@/config";
 import * as args from "@/args";
 import * as utils from "@/utils/utils";

@@ -53,7 +53,10 @@ const getDriverForPlatform = async (
       },
     });
 
-    const selector = `new UiSelector().resourceId("${story.kind.toLowerCase()}--${toKebabCase(story.name)}")`;
+    // handle nested storybook structure
+    const kind = story.kind.replace(/\//g, "-").toLowerCase();
+
+    const selector = `new UiSelector().resourceId("${kind}--${toKebabCase(story.name)}")`;
     const element = await driver.$(`android=${selector}`);
 
     return {
@@ -78,9 +81,10 @@ const getDriverForPlatform = async (
     },
   });
 
-  const element = await driver.$(
-    `~${story.kind.toLowerCase()}--${toKebabCase(story.name)}`,
-  );
+  // handle nested storybook structure
+  const kind = story.kind.replace(/\//g, "-").toLowerCase();
+
+  const element = await driver.$(`~${kind}--${toKebabCase(story.name)}`);
 
   return {
     driver,
