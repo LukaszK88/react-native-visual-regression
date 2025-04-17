@@ -147,6 +147,9 @@ export const processImages = async () => {
           image,
         );
 
+        // Ensure diff directory exists
+        await fs.mkdir(dirname(diffImagePath), { recursive: true });
+
         await fs.writeFile(diffImagePath, PNG.sync.write(diff));
 
         if (pixelDiff > 0) {
@@ -167,6 +170,7 @@ export const processImages = async () => {
 
           continue; // Skip further processing for this image
         }
+        logRed(e);
       }
     }
 
