@@ -42,13 +42,14 @@ const getDriverForPlatform = async (
       ...driverConfig,
       capabilities: {
         platformName: "Android",
+        "appium:hideKeyboard": true,
         "appium:automationName": "UiAutomator2",
         "appium:udid": deviceId,
         "appium:appPackage": appId,
         "appium:systemPort": port,
         "appium:appActivity": androidConfig.activity,
         "appium:forceAppLaunch": true,
-        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}" --es visualRegression "true"`,
+        "appium:optionalIntentArguments": `--es kind ${story.kind} --es name "${name}" --es visualRegression true`,
       },
     });
 
