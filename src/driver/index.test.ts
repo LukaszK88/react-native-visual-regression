@@ -85,10 +85,19 @@ describe("index", () => {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
         "appium:udid": "uuid",
+        "appium:connectHardwareKeyboard": true,
+        "appium:hideKeyboard": true,
         "appium:wdaLocalPort": 4830,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
-          args: ["-kind", "StoryKind", "-name", "Name A"],
+          args: [
+            "-kind",
+            "StoryKind",
+            "-name",
+            "Name A",
+            "-visualRegression",
+            "true",
+          ],
         },
         platformName: "iOS",
       },
@@ -100,11 +109,20 @@ describe("index", () => {
       capabilities: {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
+        "appium:connectHardwareKeyboard": true,
+        "appium:hideKeyboard": true,
         "appium:udid": "uuid",
         "appium:wdaLocalPort": 4830,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
-          args: ["-kind", "StoryKindB", "-name", "Name B"],
+          args: [
+            "-kind",
+            "StoryKindB",
+            "-name",
+            "Name B",
+            "-visualRegression",
+            "true",
+          ],
         },
         platformName: "iOS",
       },
@@ -120,8 +138,9 @@ describe("index", () => {
         "appium:udid": "id",
         "appium:systemPort": 4730,
         "appium:forceAppLaunch": true,
+        "appium:hideKeyboard": true,
         "appium:optionalIntentArguments":
-          '--es kind StoryKind --es name "Name A"',
+          '--es kind StoryKind --es name "Name A" --es visualRegression true',
         platformName: "Android",
       },
       hostname: "localhost",
@@ -136,8 +155,9 @@ describe("index", () => {
         "appium:udid": "id",
         "appium:systemPort": 4730,
         "appium:forceAppLaunch": true,
+        "appium:hideKeyboard": true,
         "appium:optionalIntentArguments":
-          '--es kind StoryKindB --es name "Name B"',
+          '--es kind StoryKindB --es name "Name B" --es visualRegression true',
         platformName: "Android",
       },
       hostname: "localhost",
@@ -211,11 +231,20 @@ describe("index", () => {
       capabilities: {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
+        "appium:connectHardwareKeyboard": true,
+        "appium:hideKeyboard": true,
         "appium:udid": "uuid",
         "appium:wdaLocalPort": 4830,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
-          args: ["-kind", "StoryKind", "-name", "Name A"],
+          args: [
+            "-kind",
+            "StoryKind",
+            "-name",
+            "Name A",
+            "-visualRegression",
+            "true",
+          ],
         },
         platformName: "iOS",
       },
@@ -227,11 +256,20 @@ describe("index", () => {
       capabilities: {
         "appium:automationName": "XCUITest",
         "appium:bundleId": "appId",
+        "appium:connectHardwareKeyboard": true,
+        "appium:hideKeyboard": true,
         "appium:udid": "uuid-2",
         "appium:wdaLocalPort": 4831,
         "appium:platformVersion": "17.5",
         "appium:processArguments": {
-          args: ["-kind", "StoryKindB", "-name", "Name B"],
+          args: [
+            "-kind",
+            "StoryKindB",
+            "-name",
+            "Name B",
+            "-visualRegression",
+            "true",
+          ],
         },
         platformName: "iOS",
       },
@@ -247,8 +285,9 @@ describe("index", () => {
         "appium:udid": "id",
         "appium:systemPort": 4730,
         "appium:forceAppLaunch": true,
+        "appium:hideKeyboard": true,
         "appium:optionalIntentArguments":
-          '--es kind StoryKind --es name "Name A"',
+          '--es kind StoryKind --es name "Name A" --es visualRegression true',
         platformName: "Android",
       },
       hostname: "localhost",
@@ -263,8 +302,9 @@ describe("index", () => {
         "appium:udid": "id-2",
         "appium:systemPort": 4731,
         "appium:forceAppLaunch": true,
+        "appium:hideKeyboard": true,
         "appium:optionalIntentArguments":
-          '--es kind StoryKindB --es name "Name B"',
+          '--es kind StoryKindB --es name "Name B" --es visualRegression true',
         platformName: "Android",
       },
       hostname: "localhost",
@@ -356,7 +396,14 @@ describe("index", () => {
       expect.objectContaining({
         capabilities: expect.objectContaining({
           "appium:processArguments": expect.objectContaining({
-            args: ["-kind", "StoryKind", "-name", "EUR"],
+            args: [
+              "-kind",
+              "StoryKind",
+              "-name",
+              "EUR",
+              "-visualRegression",
+              "true",
+            ],
           }),
         }),
       }),
@@ -365,7 +412,7 @@ describe("index", () => {
       expect.objectContaining({
         capabilities: expect.objectContaining({
           "appium:optionalIntentArguments":
-            '--es kind StoryKind --es name "EUR"',
+            '--es kind StoryKind --es name "EUR" --es visualRegression true',
         }),
       }),
     );

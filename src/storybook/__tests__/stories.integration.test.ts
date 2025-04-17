@@ -40,6 +40,15 @@ describe("formatStoryFileToKindWithNames", () => {
       ComponentB: ["Basic", "Second", "Third", "Fourth"],
     });
   });
+
+  it("should return KindWithNames object with title and exports for a nested folders story title", () => {
+    const result = formatStoryFileToKindWithNames(
+      "src/storybook/fixtures/nested-folders.stories.tsx",
+    );
+    expect(result).toEqual({
+      "Components/ComponentA/Some": ["Basic", "EUR"],
+    });
+  });
 });
 
 describe("getVRStories", () => {
@@ -52,6 +61,7 @@ describe("getVRStories", () => {
       ComponentC: ["Basic", "EUR"],
       ComponentB: ["Basic", "Second", "Third", "Fourth"],
       SomeComponentWithVerLongNameWhichWillEndOnNextLine: ["Basic"],
+      "Components/ComponentA/Some": ["Basic", "EUR"],
     });
   });
 
