@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { MyButton } from "./Button";
 
 const MyButtonMeta: Meta<typeof MyButton> = {
-  title: "MyButton",
+  title: "Nested/MyButton/More",
   component: MyButton,
   argTypes: {
     onPress: { action: "pressed the button" },
