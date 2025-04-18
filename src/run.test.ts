@@ -78,6 +78,34 @@ describe("run", () => {
     ]);
   });
 
+  it("should handle approve changes with a file filter and story with nested folders name", async () => {
+    // @ts-expect-error mock
+    args.default.isApproveChanges = true;
+    // @ts-expect-error mock
+    args.default.fileFilter = "someStoryFile";
+
+    // @ts-expect-error test
+    config.default.devices = [
+      { platform: "ios", name: "iPhone 15" },
+      { platform: "android", name: "Pixel 8" },
+    ];
+
+    jest.mocked(formatStoryFileToKindWithNames).mockReturnValue({
+      "Components/Calendar/Test": ["Basic", "SecondName"],
+    });
+
+    jest
+      .spyOn(utils, "approveChangesForScreenshots")
+      .mockReturnValue(undefined);
+
+    await main();
+
+    expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
+      "Calendar/Test/Components-Basic.png",
+      "Calendar/Test/Components-SecondName.png",
+    ]);
+  });
+
   it("should handle approva changes with a story filter", async () => {
     // @ts-expect-error mock
     args.default.isApproveChanges = true;
@@ -104,6 +132,35 @@ describe("run", () => {
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
       "Component-SecondName.png",
+    ]);
+  });
+
+  it("should handle approve changes with a story filter and story with nested folders name", async () => {
+    // @ts-expect-error mock
+    args.default.isApproveChanges = true;
+    // @ts-expect-error mock
+    args.default.storyFilter = "Components/Calendar/Test-SecondName";
+    // @ts-expect-error mock
+    args.default.fileFilter = undefined;
+
+    // @ts-expect-error test
+    config.default.devices = [
+      { platform: "ios", name: "iPhone 15" },
+      { platform: "android", name: "Pixel 8" },
+    ];
+
+    jest.mocked(formatStoryFileToKindWithNames).mockReturnValue({
+      "Components/Calendar/Test": ["Basic", "SecondName"],
+    });
+
+    jest
+      .spyOn(utils, "approveChangesForScreenshots")
+      .mockReturnValue(undefined);
+
+    await main();
+
+    expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
+      "Components/Calendar/Test-SecondName.png",
     ]);
   });
 });

@@ -38,8 +38,12 @@ const handleApproveChanges = () => {
 
     const kind = Object.keys(kindWithNames)[0];
 
+    const kindParts = kind.split("/");
+
+    const kindName = kindParts.splice(0, 1);
+
     const screenshots = kindWithNames[kind].map((name) =>
-      join(...kind.split("/"), `${name}.png`),
+      join(...kindParts, `${kindName}-${name}.png`),
     );
 
     approveChangesForScreenshots(screenshots);
@@ -47,8 +51,8 @@ const handleApproveChanges = () => {
   }
 
   if (storyFilter) {
-    const nestedPath = join(...storyFilter.split("/")) + ".png";
-    approveChangesForScreenshots([nestedPath]);
+    const path = storyFilter + ".png";
+    approveChangesForScreenshots([path]);
     return;
   }
 
