@@ -37,14 +37,9 @@ const handleApproveChanges = () => {
     const kindWithNames = formatStoryFileToKindWithNames(fileFilter);
 
     const kind = Object.keys(kindWithNames)[0];
+    const names = kindWithNames[kind];
 
-    const kindParts = kind.split("/");
-
-    const kindName = kindParts.splice(0, 1);
-
-    const screenshots = kindWithNames[kind].map((name) =>
-      join(...kindParts, `${kindName}-${name}.png`),
-    );
+    const screenshots = names.map((name) => `${kind}-${name}.png`);
 
     approveChangesForScreenshots(screenshots);
     return;

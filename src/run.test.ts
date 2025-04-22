@@ -101,8 +101,8 @@ describe("run", () => {
     await main();
 
     expect(utils.approveChangesForScreenshots).toHaveBeenCalledWith([
-      "Calendar/Test/Components-Basic.png",
-      "Calendar/Test/Components-SecondName.png",
+      "Components/Calendar/Test-Basic.png",
+      "Components/Calendar/Test-SecondName.png",
     ]);
   });
 
