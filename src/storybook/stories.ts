@@ -3,6 +3,7 @@ import fs from "fs";
 import { KindWithNames } from "@/types";
 import { fileFilter } from "@/args";
 import { storiesDirectories } from "@/config";
+import { vrStore } from "@/store";
 
 function getStoryFiles(dirs: string[]): string[] {
   let results: string[] = [];
@@ -25,7 +26,7 @@ function getStoryFiles(dirs: string[]): string[] {
   return results;
 }
 
-function extractExportNames(filePath: string): string[] {
+function extractExportNames(filePath: string, kind: string): string[] {
   const content = fs.readFileSync(filePath, "utf8");
   // Regular expression to match any export const with a StoryObj type
   const exportRegex =
@@ -43,7 +44,22 @@ function extractExportNames(filePath: string): string[] {
       /parameters\s*:\s*{[\s\S]*?visualRegression\s*:\s*true[\s\S]*?}/s;
 
     if (visualRegressionRegex.test(exportContent)) {
+      const awaitElementMatch = exportContent.match(
+        /visualRegressionAwaitElement\s*:\s*['"`]([^'"`]+)['"`]/s,
+      );
+
       exports.push(exportName);
+
+      if (awaitElementMatch?.[1]) {
+        vrStore.setState({
+          storiesBeingProcessed: {
+            ...vrStore.getState().storiesBeingProcessed,
+            [`${kind}-${exportName}`]: {
+              testID: awaitElementMatch[1],
+            },
+          },
+        });
+      }
     }
   }
 
@@ -90,7 +106,7 @@ export const formatStoryFileToKindWithNames = (
 ): KindWithNames => {
   const absolutePath = resolve(storyFile);
   const kind = extractDefaultTitle(absolutePath);
-  const names = extractExportNames(absolutePath);
+  const names = extractExportNames(absolutePath, kind);
 
   return { [kind]: names };
 };

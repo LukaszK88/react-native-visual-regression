@@ -99,7 +99,18 @@ const processStory = async (
   element: ChainablePromiseElement,
   driver: WebdriverIO.Browser,
 ) => {
+  const { storiesBeingProcessed } = vrStore.getState();
+
+  const testID = storiesBeingProcessed[storyFullName]?.testID;
+
   await element.waitForDisplayed({ timeout: 7000 });
+
+  if (testID) {
+    logBlue("Awaiting", testID);
+
+    const animatedEl = await driver.$(`~${testID}`);
+    await animatedEl.waitForDisplayed({ timeout: 5000 });
+  }
 
   const screenshot = await driver.takeScreenshot();
   const currentPathForDevice = join(
