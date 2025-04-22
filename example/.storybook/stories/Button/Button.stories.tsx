@@ -1,6 +1,8 @@
 import { View } from "react-native";
 import type { Meta, StoryObj } from "@storybook/react";
 import { MyButton } from "./Button";
+import { useEffect, useState } from "react";
+import React from "react";
 
 const MyButtonMeta: Meta<typeof MyButton> = {
   title: "MyButton",
@@ -43,5 +45,36 @@ export const CAPS: StoryObj<typeof MyButton> = {
   },
   parameters: {
     visualRegression: true,
+  },
+};
+
+export const AwaitingElement: StoryObj<typeof MyButton> = {
+  parameters: {
+    visualRegression: true,
+    visualRegressionAwaitElement: "element",
+  },
+  args: {
+    text: "Awaiting",
+  },
+  render: () => {
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+      setTimeout(() => {
+        setVisible(true);
+      }, 2000);
+    }, []);
+
+    if (visible) {
+      return (
+        <MyButton
+          testID="element"
+          text="Awaiting"
+          onPress={() => console.log("test")}
+        />
+      );
+    }
+
+    return null;
   },
 };

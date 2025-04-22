@@ -60,6 +60,7 @@ export const AnotherExample: StoryObj<typeof MyButton> = {
   },
   parameters: {
     visualRegression: true,
+    visualRegressionAwaitElement: "someTestID", // await initial element (optional)
   }
 };
 ```

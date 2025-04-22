@@ -3,12 +3,18 @@ import { Story } from "@/types";
 import { getVRStories } from "@/storybook/stories";
 import { storyFilter } from "@/args";
 
+interface StoryBeingProcessedExtras {
+  testID: string;
+}
+
 interface State {
   stories: Story[];
+  storiesBeingProcessed: Record<string, StoryBeingProcessedExtras>;
 }
 
 export const vrStore = createStore<State>(() => ({
   stories: [],
+  storiesBeingProcessed: {},
 }));
 
 export const initStore = () => {
