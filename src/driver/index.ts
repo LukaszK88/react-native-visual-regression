@@ -93,7 +93,7 @@ const getDriverForPlatform = async (
 };
 
 const processStory = async (
-  deviceName: string,
+  device: Device,
   storyFullName: string,
   bar: SingleBar,
   element: ChainablePromiseElement,
@@ -108,14 +108,19 @@ const processStory = async (
   if (testID) {
     logBlue("Awaiting", testID);
 
-    const animatedEl = await driver.$(`~${testID}`);
+    const selector =
+      device.platform === "ios"
+        ? `~${testID}`
+        : `android=new UiSelector().resourceId("${testID}")`;
+
+    const animatedEl = await driver.$(selector);
     await animatedEl.waitForDisplayed({ timeout: 5000 });
   }
 
   const screenshot = await driver.takeScreenshot();
   const currentPathForDevice = join(
     VISUAL_REGRESSION_CURRENT_DIR,
-    deviceName,
+    device.name,
     `${storyFullName}.png`,
   );
 
@@ -153,7 +158,7 @@ const processStoriesSequentially = async (
 
         try {
           logBlue("Processing", story.fullName, ":", pararellDevice.name);
-          await processStory(device.name, story.fullName, bar, element, driver);
+          await processStory(device, story.fullName, bar, element, driver);
         } catch (e) {
           logBlue(
             "\n",
@@ -182,13 +187,7 @@ const processStoriesSequentially = async (
 
     try {
       logBlue("Processing", failedStory.fullName, ":", pararellDevice.name);
-      await processStory(
-        device.name,
-        failedStory.fullName,
-        bar,
-        element,
-        driver,
-      );
+      await processStory(device, failedStory.fullName, bar, element, driver);
     } catch (e) {
       logRed("\n", failedStory.fullName, "Processing failed twice", e, "\n");
       const image = `${failedStory.fullName}.png`;

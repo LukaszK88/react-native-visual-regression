@@ -1,10 +1,9 @@
-import { apkPath } from "@/args";
+import { apkPath, reinstallApp } from "@/args";
 import { appId } from "@/config";
 import { logBlue, logGreen, logRed } from "@/console";
 import { addBaseDevice, addToBaseDevice } from "@/stores/deviceStore";
 import { Device } from "@/types";
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import {
   checkIfBootCompleted,
   getAvdById,
@@ -52,8 +51,6 @@ const androidVersionToApiMap: Record<string, number> = {
   'Android 14.0 ("UpsideDownCake")': 34,
   'Android 15.0 ("VanillaIceCream")': 35, // Placeholder for future versions
 };
-
-const execAsync = promisify(exec);
 
 export async function findEmulatorByAvdName(targetAvdName: string) {
   const devicesOutput = await listDevices();
@@ -187,7 +184,7 @@ const installApp = async (emulatorId: string) => {
 const attemptAppInstall = async (emulatorId: string) => {
   const isAppInstalled = await checkIfAppIsInstalled(emulatorId);
 
-  if (!isAppInstalled) {
+  if (!isAppInstalled || reinstallApp) {
     if (!apkPath) {
       logRed(
         emulatorId,

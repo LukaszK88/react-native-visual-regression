@@ -13,6 +13,7 @@ const input = arg({
   "--appPath": String,
   "--maskHomeBar": Boolean,
   "--driverLogLevel": String, // 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+  "--reinstallApp": Boolean,
   // Aliases
   "-a": "--approve",
   "-f": "--file",
@@ -20,6 +21,7 @@ const input = arg({
   "-d": "--device",
   "-v": "--verbose",
   "-rf": "--reportFormat",
+  "-r": "--reinstallApp",
 });
 
 export const isApproveChanges = input["--approve"];
@@ -33,5 +35,6 @@ export const apkPath = input["--apkPath"];
 export const appPath = input["--appPath"];
 export const maskHomeBar = input["--maskHomeBar"];
 export const driverLogLevel = input["--driverLogLevel"] ?? "silent";
+export const reinstallApp = input["--reinstallApp"] ?? false;
 
 export const isFilterApplied = fileFilter || storyFilter || devicesFilter;

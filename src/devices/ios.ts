@@ -2,7 +2,7 @@ import { appId } from "@/config";
 import { logBlue, logRed } from "@/console";
 import { Device } from "@/types";
 import { addBaseDevice, addToBaseDevice } from "@/stores/deviceStore";
-import { appPath } from "@/args";
+import { appPath, reinstallApp } from "@/args";
 import {
   bootSimulator,
   checkBootStatus,
@@ -85,7 +85,7 @@ const handleExistingSimulator = async (
   logBlue(name, "is ready.");
 
   const isInstalled = await checkIfAppIsInstalled(udid, appId);
-  if (!isInstalled) {
+  if (!isInstalled || reinstallApp) {
     const installSuccessful = await handleInstallApp(udid);
 
     if (!installSuccessful) {

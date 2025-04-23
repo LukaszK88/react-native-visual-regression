@@ -1,6 +1,6 @@
 {
   "name": "@powala/react-native-visual-regression",
-  "version": "2.2.6",
+  "version": "2.2.7",
   "description": "Visual Regression for React Native using Storybook",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
